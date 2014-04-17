@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/tx
+		http://www.springframework.org/schema/tx/spring-tx.xsd
+		http://www.springframework.org/schema/aop
+		http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context.xsd">
+		
+	<!-- 声明走动扫描方式管理Bean -->
+	<context:component-scan base-package="com.itucity.dsmp" />
+	
+	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+		<property name="basename">
+			<value>messages</value>
+		</property>
+	</bean>
+ 	
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:datasource.properties</value>
+				<value>classpath*:erroMessage.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+	<!-- c3p0数据库连接池 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"	destroy-method="close">
+		<property name="driverClass" value="${jdbc.driver}" />
+		<property name="jdbcUrl" value="${jdbc.url}" />
+		<property name="user" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<property name="maxPoolSize" value="40" />
+		<property name="minPoolSize" value="1" />
+		<property name="initialPoolSize" value="1" />
+		<property name="maxIdleTime" value="60" />
+	</bean>
+	
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="packagesToScan" value="com.itucity.dsmp.*.dao.entity*"/>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">${hibernate.dialect}</prop>
+				<prop key="hibernate.format_sql">${hibernate.format_sql}</prop>
+				<prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+				<prop key="hibernate.query.substitutions">true 1, false 0</prop>
+				<prop key="hibernate.default_batch_fetch_size">16</prop>
+				<prop key="hibernate.max_fetch_depth">2</prop>
+				<prop key="hibernate.generate_statistics">true</prop>
+				<prop key="hibernate.bytecode.use_reflection_optimizer">true</prop>
+				<prop key="hibernate.cache.use_second_level_cache">${hibernate.cache.use_second_level_cache}</prop>
+				<prop key="hibernate.cache.use_query_cache">${hibernate.cache.use_query_cache}</prop>
+				<prop key="hibernate.cache.provider_class">com.googlecode.hibernate.memcached.MemcachedCacheProvider</prop>
+				<prop key="hibernate.memcached.servers">${hibernate.memcached.servers}</prop>
+				<prop key="hibernate.memcached.hashAlgorithm">${hibernate.memcached.hashAlgorithm}</prop>
+				<prop key="hibernate.cache.region_prefix">quality.cache.ehcache</prop>
+				<prop key="hibernate.cache.use_structured_entries">true</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+			</props>  
+		</property>
+		
+	</bean>
+	
+	<!-- 事务管理器 -->
+	<tx:annotation-driven transaction-manager="transactionManager" />
+	<bean id="transactionManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"/>
+	</bean>
+	<!-- 事务处理 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>  
+		<!-- 指定哪些方法需要加入事务，可以使用通配符来只加入需要的方法 -->  
+			<tx:method name="*" propagation="REQUIRED" />  
+		</tx:attributes>
+	</tx:advice>
+    
+	<!-- 开启切面编程功能 -->
+	<aop:aspectj-autoproxy />
+	
+	<!-- 需要引入aop的命名空间 -->
+	<aop:config>
+		<!-- 拦截器 -->
+		<aop:advisor advice-ref="txAdvice" order="2" pointcut="execution(* com.itucity.dsmp.*.service.impl.*.*(..))" />
+		<!--
+		<aop:aspect ref="exceptionAroundAdvice" order="1" >
+			<aop:around method="invoke" pointcut="execution(* com.itucity.*.service.impl.*.*(..))" />
+		</aop:aspect>
+		-->
+	</aop:config>
+
+	<!-- 错误捕捉 -->
+	<bean id="errorMessage" class="com.itucity.dsmp.tripwiki.util.ReturnPackaging">
+		<property name="connection_error" value="${connection_error}"></property>
+		<property name="upload_error" value="${upload_error}"></property>
+		<property name="download_error" value="${download_error}"></property>
+		<property name="unknown_error" value="${unknown_error}"></property>
+		<property name="import_error" value="${import_error}"></property>
+		<property name="export_error" value="${export_error}"></property>
+	</bean>
+	
+</beans>
