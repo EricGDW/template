@@ -10,7 +10,6 @@ import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.stereotype.Service;
 
 /**
  * 访问决策器，决定某个用户（具有的角色）是否有足够的权限去访问某个资源 
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service;
  * @author Eric
  * @since 0.0.1 <p>2014-3-15 下午1:08:42</p>
  */
-
 public class CustomizedAccessDecisionManager implements AccessDecisionManager {
 
 	private boolean allowIfAllAbstainDecisions = false;  

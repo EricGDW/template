@@ -17,7 +17,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.itucity.dsmp.identity.dao.UserDao;
-import com.itucity.dsmp.identity.dao.entity.GroupPO;
+import com.itucity.dsmp.identity.dao.entity.RolePO;
 import com.itucity.dsmp.identity.dao.entity.UserPO;
 
 
@@ -53,17 +53,17 @@ public class SecurityUserDetailsService implements UserDetailsService{
 						"Username {0} not found"));
 		}
 		Collection<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-		List<GroupPO> userRoles = user.getGroups();
-		for (GroupPO userRole : userRoles) {
+		List<RolePO> userRoles = userDao.findUserRole(user.getUid());
+		for (RolePO userRole : userRoles) {
 			//这里的 role 参数为自己定义的，要和 SecurityMetadataSource 中的 SecurityConfig 参数对应
 			SimpleGrantedAuthority authority 
-					= new SimpleGrantedAuthority(userRole.getName());
+					= new SimpleGrantedAuthority(userRole.getRoleName());
 			authorities.add(authority);
 		}
 		
 		//创建 UserDetails 对象
 		SecurityUserDetails userDetails = new SecurityUserDetails(
-				user.getUid() ,username, user.getPassword(), user.getIsValid(),
+				user.getUid() ,username, user.getPassword(), user.getIsActive(),
 				authorities);
 		return userDetails;
 	}

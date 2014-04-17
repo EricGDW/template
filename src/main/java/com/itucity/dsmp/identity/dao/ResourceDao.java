@@ -2,6 +2,7 @@ package com.itucity.dsmp.identity.dao;
 
 import java.util.List;
 
+import com.itucity.dsmp.identity.dao.entity.RolePO;
 import com.itucity.dsmp.identity.dao.entity.UrlPO;
 
 /**
@@ -11,6 +12,9 @@ import com.itucity.dsmp.identity.dao.entity.UrlPO;
  * 3/13/2014
  */
 public interface ResourceDao {
+	
+	
+	List<RolePO> getResourceRoleByType(Integer resourceId, String type);
 	
 	/**
 	 * 

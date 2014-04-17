@@ -1,6 +1,7 @@
 package com.itucity.dsmp.identity.service.model;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * @author Eric
@@ -21,11 +22,13 @@ public class UserVO implements Serializable{
 	
 	private String password;			// 密码
 
-	private String no;					// 员工工号
+	private String idcard;				// 身份证号
 	
-	private String sex;					// 性别
+	private Integer sex;				// 性别
 
 	private String nickname;			// 昵称
+	
+	private String realname;			// 姓名
 	
 	private String language;			// 语言
 	
@@ -33,17 +36,19 @@ public class UserVO implements Serializable{
 	
 	private String province;			// 省份
 	
-	private String country;				// 国家
+	private String country;			// 国家
 	
-	private String headImgUrl;			// 头像URL
+	private Integer headImgId;			// 头像URL
+	
+	private Date registerTime;			// 注册时间
 	
 	private String type;				// 类型
 
 	private String email;				// 电子邮件
 
-	private Boolean isValid;			// 是否有效Y/N
+	private Boolean isActive;			// 是否有效Y/N
 
-	private String remarks;				// 备注
+	private String remarks;			// 备注
 
 	public UserVO(){
 		
@@ -62,14 +67,6 @@ public class UserVO implements Serializable{
 	public void setId(Integer id) {
 		this.id = id;
 	}
-	
-	public String getNo() {
-		return no;
-	}
-
-	public void setNo(String no) {
-		this.no = no;
-	}
 
 	public String getUsername() {
 		return username;
@@ -77,14 +74,6 @@ public class UserVO implements Serializable{
 
 	public void setUsername(String username) {
 		this.username = username;
-	}
-
-	public String getSex() {
-		return sex;
-	}
-
-	public void setSex(String sex) {
-		this.sex = sex;
 	}
 
 	public String getPassword() {
@@ -135,14 +124,6 @@ public class UserVO implements Serializable{
 		this.country = country;
 	}
 
-	public String getHeadImgUrl() {
-		return headImgUrl;
-	}
-
-	public void setHeadImgUrl(String headImgUrl) {
-		this.headImgUrl = headImgUrl;
-	}
-
 	public String getType() {
 		return type;
 	}
@@ -159,14 +140,6 @@ public class UserVO implements Serializable{
 		this.email = email;
 	}
 
-	public Boolean getIsValid() {
-		return isValid;
-	}
-
-	public void setIsValid(Boolean isValid) {
-		this.isValid = isValid;
-	}
-
 	public String getRemarks() {
 		return remarks;
 	}
@@ -175,4 +148,52 @@ public class UserVO implements Serializable{
 		this.remarks = remarks;
 	}
 
+	public String getIdcard() {
+		return idcard;
+	}
+
+	public void setIdcard(String idcard) {
+		this.idcard = idcard;
+	}
+
+	public Integer getSex() {
+		return sex;
+	}
+
+	public void setSex(Integer sex) {
+		this.sex = sex;
+	}
+
+	public String getRealname() {
+		return realname;
+	}
+
+	public void setRealname(String realname) {
+		this.realname = realname;
+	}
+
+	public Integer getHeadImgId() {
+		return headImgId;
+	}
+
+	public void setHeadImgId(Integer headImgId) {
+		this.headImgId = headImgId;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public Date getRegisterTime() {
+		return registerTime;
+	}
+
+	public void setRegisterTime(Date registerTime) {
+		this.registerTime = registerTime;
+	}
+	
 }

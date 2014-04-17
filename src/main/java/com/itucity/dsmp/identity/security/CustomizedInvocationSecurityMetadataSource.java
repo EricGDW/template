@@ -20,16 +20,15 @@ import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.access.intercept.FilterInvocationSecurityMetadataSource;
-import org.springframework.security.web.util.AntPathRequestMatcher;
-import org.springframework.security.web.util.RegexRequestMatcher;
-import org.springframework.security.web.util.RequestMatcher;
-import org.springframework.stereotype.Service;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RegexRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
-import com.itucity.dsmp.identity.dao.entity.GroupPO;
+import com.itucity.dsmp.identity.dao.entity.RolePO;
 import com.itucity.dsmp.identity.service.GroupService;
 import com.itucity.dsmp.identity.service.ResourceService;
-import com.itucity.dsmp.identity.service.model.GroupVO;
 import com.itucity.dsmp.identity.service.model.ResourceVO;
+import com.itucity.dsmp.identity.service.model.RoleVO;
 
 
 /**
@@ -41,7 +40,7 @@ import com.itucity.dsmp.identity.service.model.ResourceVO;
 
 public class CustomizedInvocationSecurityMetadataSource 
 				implements FilterInvocationSecurityMetadataSource {
-	private static Logger logger = LoggerFactory
+	private static Logger log = LoggerFactory
 			.getLogger(CustomizedInvocationSecurityMetadataSource.class);
 	
 	private static Map<String, Collection<ConfigAttribute>> resourceMap
@@ -75,11 +74,11 @@ public class CustomizedInvocationSecurityMetadataSource
 		resourceMap.clear();
 		List<ResourceVO> resources = this.resourceService.loadForAll();  
         for (ResourceVO resource : resources) {  
-            List<GroupPO> owner = resource.getOwner(); 
+            List<RolePO> owner = resource.getOwner(); 
             
-            List<GroupVO> roles = new ArrayList<GroupVO>();		
-    		for(GroupPO po : owner){
-    			GroupVO vo = new GroupVO();
+            List<RoleVO> roles = new ArrayList<RoleVO>();		
+    		for(RolePO po : owner){
+    			RoleVO vo = new RoleVO();
     			BeanUtils.copyProperties(po, vo);
     			roles.add(vo);
     		}
@@ -94,10 +93,10 @@ public class CustomizedInvocationSecurityMetadataSource
      * @param roles 
      * @return Collection<ConfigAttribute> 
      */  
-    private Collection<ConfigAttribute> list2Collection(List<GroupVO> roles) {  
+    private Collection<ConfigAttribute> list2Collection(List<RoleVO> roles) {  
         List<ConfigAttribute> list = new ArrayList<ConfigAttribute>();  
-        for (GroupVO role : roles)  
-            list.add(new SecurityConfig(role.getName()));  
+        for (RoleVO role : roles)  
+            list.add(new SecurityConfig(role.getRoleName()));  
         return list;  
     }  
 	
@@ -111,6 +110,7 @@ public class CustomizedInvocationSecurityMetadataSource
             // 清空原本资源  
         	resourceMap.clear();  
             expire = false;  
+            log.debug("resources are expired");
         }  
   
         // 如果资源Map为空的时候则重新加载一次  

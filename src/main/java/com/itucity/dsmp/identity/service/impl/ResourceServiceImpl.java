@@ -5,11 +5,11 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.itucity.dsmp.identity.dao.ResourceDao;
+import com.itucity.dsmp.identity.dao.ResourceTypeEnum;
 import com.itucity.dsmp.identity.dao.entity.UrlPO;
 import com.itucity.dsmp.identity.service.ResourceService;
 import com.itucity.dsmp.identity.service.model.ResourceVO;
@@ -26,10 +26,6 @@ import com.itucity.dsmp.identity.service.model.UrlVO;
 @Transactional
 public class ResourceServiceImpl implements ResourceService{
 
-	enum ResourceTypeEnum {
-		URL
-	}
-	
 	@Resource
 	private ResourceDao resourceDao;
 	
@@ -40,11 +36,11 @@ public class ResourceServiceImpl implements ResourceService{
 		
 		List<UrlPO> urlPos =  resourceDao.getAllUrl();
 		for(UrlPO po : urlPos){
-			Hibernate.initialize(po.getGroups());
 			ResourceVO vo = new ResourceVO();
 			vo.setId(po.getId());
 			vo.setContent(po.getContent());
-			vo.setOwner(po.getGroups());
+			vo.setOwner(resourceDao.getResourceRoleByType(po.getId(), 
+					ResourceTypeEnum.URL.toString()));
 			vo.setType(ResourceTypeEnum.URL.toString());
 			resources.add(vo);
 		}

@@ -2,8 +2,7 @@ package com.itucity.dsmp.identity.service;
 
 import java.util.List;
 
-import org.springframework.stereotype.Service;
-
+import com.itucity.dsmp.common.page.PagesInfo;
 import com.itucity.dsmp.identity.service.model.GroupVO;
 
 /**
@@ -12,7 +11,6 @@ import com.itucity.dsmp.identity.service.model.GroupVO;
  * 
  * 3/14/2014
  */
-@Service("resourceService")
 public interface GroupService {
 
 	/**
@@ -29,20 +27,23 @@ public interface GroupService {
 	GroupVO getGroupByID(Integer id);
 	
 	/**
-	 * 按组名获取组
-	 * @param groupName
-	 * @return
-	 */
-	GroupVO getGroupByName(String groupName);
-	
-	/**
 	 * 按组名模糊查询
 	 * @param nameLike
-	 * @param first 开始记录
-	 * @param max	结果数
+	 * 
 	 * @return
 	 */
-	List<GroupVO> getGroupByLike(String nameLike, Integer first, Integer max);
+	List<GroupVO> getGroupByLike(String nameLike);
+	
+	/**
+	 * 分页获取组信息
+	 * @param limit 	每页记录数量
+	 * @param pageNo	第几页
+	 * 
+	 * 不传limit或pageNo时获取所有数据，当一页处理
+	 * 
+	 * @return
+	 */
+	PagesInfo<GroupVO> getGroupByPage(Integer limit, Integer pageNo);
 	
 	/**
 	 * 添加组

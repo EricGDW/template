@@ -6,6 +6,7 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,6 +19,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.jdbc.Work;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
@@ -33,6 +35,9 @@ import com.itucity.dsmp.common.page.PagesInfo;
  */
 @Transactional
 public abstract class BaseDao implements IDao {
+	
+	@Value("${errorNoResult}")
+	public String errorNoResult;
 
 	@Autowired
 	@Qualifier("sessionFactory")
@@ -91,12 +96,20 @@ public abstract class BaseDao implements IDao {
 	    	Query query = getSession().createQuery(hql);
 	    	
 	    	if(parameters!=null){
+	    		for (String key : parameters.keySet()) {
+	    			Object parameter = parameters.get(key);
+	    			if (parameter instanceof Collection) {
+	    				query.setParameterList(key, (Collection<?>) parameter);
+	    			} else {
+	    				query.setParameter(key, parameter);
+	    			}
+	    		}
 	    		
-	    		for(Map.Entry<String, Object> entry: parameters.entrySet()){
+	    	/*	for(Map.Entry<String, Object> entry: parameters.entrySet()){
 	    			
 	    			query.setParameter(entry.getKey(), entry.getValue());
 	    			
-	    		}
+	    		}*/
 			}
 			
 			if(firstResult>=0 && maxResults>0){
@@ -152,7 +165,8 @@ public abstract class BaseDao implements IDao {
 				
 			
 			}else{
-				 oldtempJpql =com.itucity.dsmp.common.util.StringUtils.replace(hql,0,tempJpql.indexOf("from"),"select   count(*) ").replace("fetch", "");
+				 oldtempJpql =com.itucity.dsmp.common.util.StringUtils.replace(hql,0,tempJpql.indexOf("from"),"select count(distinct t) ").replace("fetch", "");
+//				 oldtempJpql =com.itucity.dsmp.common.util.StringUtils.replace(hql,0,tempJpql.indexOf("from"),"select count(*) ").replace("fetch", "");
 			}
 			
 			
@@ -187,9 +201,17 @@ public abstract class BaseDao implements IDao {
     public int hqlUpdate(String hql, Hashtable<String,Object> parameters){
     	Query query = getSession().createQuery(hql);
     	if(parameters!=null){
-    		for(Map.Entry<String, Object> entry: parameters.entrySet()){
-    			query.setParameter(entry.getKey(), entry.getValue());
+    		for (String key : parameters.keySet()) {
+    			Object parameter = parameters.get(key);
+    			if (parameter instanceof Collection) {
+    				query.setParameterList(key, (Collection<?>) parameter);
+    			} else {
+    				query.setParameter(key, parameter);
+    			}
     		}
+    		/*for(Map.Entry<String, Object> entry: parameters.entrySet()){
+    			query.setParameter(entry.getKey(), entry.getValue());
+    		}*/
 		}
     	int result = query.executeUpdate();
 		return result;
@@ -220,9 +242,17 @@ public abstract class BaseDao implements IDao {
     		List<E> list = new ArrayList<E>();
         	SQLQuery sqlQuery = getSession().createSQLQuery(sql);
         	if(parameters!=null){
-        		for(Map.Entry<String, Object> entry: parameters.entrySet()){
+        		for (String key : parameters.keySet()) {
+	    			Object parameter = parameters.get(key);
+	    			if (parameter instanceof Collection) {
+	    				sqlQuery.setParameterList(key, (Collection<?>) parameter);
+	    			} else {
+	    				sqlQuery.setParameter(key, parameter);
+	    			}
+	    		}
+        		/*for(Map.Entry<String, Object> entry: parameters.entrySet()){
         			sqlQuery.setParameter(entry.getKey(), entry.getValue());
-        		}
+        		}*/
     		}
         	
         	if(firstResult>=0 && maxResults>0){
@@ -248,9 +278,17 @@ public abstract class BaseDao implements IDao {
     public int sqlUpdate(String sql, Hashtable<String,Object> parameters){
     	SQLQuery sqlQuery = getSession().createSQLQuery(sql);
     	if(parameters!=null){
-    		for(Map.Entry<String, Object> entry: parameters.entrySet()){
-    			sqlQuery.setParameter(entry.getKey(), entry.getValue());
+    		for (String key : parameters.keySet()) {
+    			Object parameter = parameters.get(key);
+    			if (parameter instanceof Collection) {
+    				sqlQuery.setParameterList(key, (Collection<?>) parameter);
+    			} else {
+    				sqlQuery.setParameter(key, parameter);
+    			}
     		}
+//    		for(Map.Entry<String, Object> entry: parameters.entrySet()){
+//    			sqlQuery.setParameter(entry.getKey(), entry.getValue());
+//    		}
 		}
     	int result = sqlQuery.executeUpdate();
 		return result;
@@ -268,9 +306,18 @@ public abstract class BaseDao implements IDao {
     	Query query = getSession().createQuery(hql);
     	query.setCacheable(true).setCacheRegion("frontpages");
     	if(parameters!=null){
-    		for(Map.Entry<String, Object> entry: parameters.entrySet()){
-    			query.setParameter(entry.getKey(), entry.getValue());
+    		for (String key : parameters.keySet()) {
+				Object parameter = parameters.get(key);
+				if (parameter instanceof Collection) {
+					query.setParameterList(key, (Collection<?>) parameter);
+				} else {
+					query.setParameter(key, parameter);
+				}
     		}
+    		
+//    		for(Map.Entry<String, Object> entry: parameters.entrySet()){
+//    			query.setParameter(entry.getKey(), entry.getValue());
+//    		}
 		}
     	list = query.list();
 		return list;
@@ -364,8 +411,8 @@ public abstract class BaseDao implements IDao {
 		
 		long totalRecord=pagesInfo.getTotalRecord();
 		if(totalRecord==0){
-			
-			totalRecord=((BigDecimal)this.sqlQuery("select count(*) from (" + sql +")").get(0)).longValue();
+			totalRecord=((BigDecimal)this.sqlQuery("select count(distinct *) from (" + sql +")").get(0)).longValue();
+//			totalRecord=((BigDecimal)this.sqlQuery("select count(*) from (" + sql +")").get(0)).longValue();
 			
 			pagesInfo.setTotalRecord(totalRecord);
 		}

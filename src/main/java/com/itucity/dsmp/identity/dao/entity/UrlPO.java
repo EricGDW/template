@@ -3,16 +3,13 @@ package com.itucity.dsmp.identity.dao.entity;
 import static javax.persistence.GenerationType.IDENTITY;
 
 import java.io.Serializable;
-import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.Table;
+
 
 /**
  * @author Eric
@@ -21,7 +18,7 @@ import javax.persistence.Table;
  * 3/15/2014
  */
 @Entity
-@Table(name = "base_url")
+@Table(name = "bs_url")
 public class UrlPO implements Serializable{
 
 	/**
@@ -31,11 +28,9 @@ public class UrlPO implements Serializable{
 
 	private Integer id;					// ID，数据库生成
 	
-	private String content;					// URL内容
+	private String content;				// URL内容
 	
 	private String remarks;				// 备注
-	
-	private List<GroupPO> groups;      	// URL所属的组或角色
 	
 	@Id
 	@GeneratedValue(strategy = IDENTITY)
@@ -66,15 +61,5 @@ public class UrlPO implements Serializable{
 		this.remarks = remarks;
 	}
 	
-	@ManyToMany
-	@JoinTable(name="base_group_url", joinColumns={ @JoinColumn(name="url_id")}, 
-		    inverseJoinColumns={ @JoinColumn(name = "group_id") })
-	public List<GroupPO> getGroups() {
-		return groups;
-	}
-
-	public void setGroups(List<GroupPO> groups) {
-		this.groups = groups;
-	}
 }
 

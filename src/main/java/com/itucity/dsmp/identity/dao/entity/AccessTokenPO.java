@@ -23,7 +23,7 @@ import javax.persistence.TemporalType;
  * 3/13/2014
  */
 @Entity
-@Table(name = "base_access_token", catalog = "dsmp")
+@Table(name = "bs_access_token")
 public class AccessTokenPO implements Serializable{
 	
 	/**

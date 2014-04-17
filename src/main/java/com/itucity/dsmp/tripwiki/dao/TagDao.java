@@ -1,6 +1,5 @@
 package com.itucity.dsmp.tripwiki.dao;
 
-import com.itucity.dsmp.common.base.IDao;
 import com.itucity.dsmp.tripwiki.dao.entity.TagPO;
 
 /**
@@ -11,7 +10,18 @@ import com.itucity.dsmp.tripwiki.dao.entity.TagPO;
  * 
  * 3/30/2014
  */
-public interface TagDao extends IDao {
+public interface TagDao {
+	
+	TagPO findById(Integer tagId);
+	
+	Integer save(TagPO tag);
+	
+	Boolean update(TagPO tag);
+	
+	Boolean delete(TagPO tag);
+	
+	Boolean deleteById(Integer tagId);
+	
 
 	/**
 	 * 

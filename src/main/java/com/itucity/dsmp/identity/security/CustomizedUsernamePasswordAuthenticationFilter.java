@@ -26,6 +26,8 @@ public class CustomizedUsernamePasswordAuthenticationFilter
 	private static Logger logger = LoggerFactory
 			.getLogger(CustomizedUsernamePasswordAuthenticationFilter.class);
 	
+	private String filterProcessesUrl = "/logon";
+	
 	private String username = "username";
 	
 	private String password = "password";
@@ -63,6 +65,7 @@ public class CustomizedUsernamePasswordAuthenticationFilter
 	public void init(){
 		//配置接收参数的表单名称，默认是 j_username 和 j_password
 		//可以在这里手工指定，也可以在Spring配置中注入属性
+		this.setFilterProcessesUrl(filterProcessesUrl);
 		this.setUsername(username);
 		this.setPassword(password);
 		
@@ -144,6 +147,16 @@ public class CustomizedUsernamePasswordAuthenticationFilter
 		this.postOnly = postOnly;
 	}
 	
+	@Override
+	protected String obtainUsername(HttpServletRequest request) {
+        return request.getParameter(username);
+    }
+	
+	@Override
+	protected String obtainPassword(HttpServletRequest request) {
+        return request.getParameter(password);
+    }
+	
 	private String obtainValidateCodeParameter(HttpServletRequest request) {
 		return request.getParameter(validateCodeParameter);
 	}
@@ -208,4 +221,13 @@ public class CustomizedUsernamePasswordAuthenticationFilter
 	public void setFailureUrl(String failureUrl) {
 		this.failureUrl = failureUrl;
 	}
+
+	public String getFilterProcessesUrl() {
+		return filterProcessesUrl;
+	}
+
+	public void setFilterProcessesUrl(String filterProcessesUrl) {
+		this.filterProcessesUrl = filterProcessesUrl;
+	}
+
 }

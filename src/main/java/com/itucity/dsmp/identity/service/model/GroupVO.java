@@ -8,67 +8,55 @@ package com.itucity.dsmp.identity.service.model;
  */
 public class GroupVO {
 
-	private Integer id;
-
-	private String name;			//组织名称
-
-	private String type;			//组织类型
-
-	private Integer parentId;		//父组织
-
-	private String remarks;			//备注
+	private Integer groupId;
+	private String groupName;
+	private String type;
+	private Integer parentId;
+	private String remarks;
 	
-	public GroupVO() {
-		super();
+	public GroupVO(){
+		
 	}
 	
-	public GroupVO(Integer id, String name, String type) {
+	public GroupVO(Integer groupId, String groupName, String type,
+			Integer parentId, String remarks) {
 		super();
-		this.id = id;
-		this.name = name;
+		this.groupId = groupId;
+		this.groupName = groupName;
 		this.type = type;
+		this.parentId = parentId;
+		this.remarks = remarks;
 	}
-
-
-	public Integer getId() {
-		return id;
+	
+	public Integer getGroupId() {
+		return groupId;
 	}
-
-	public void setId(Integer id) {
-		this.id = id;
+	public void setGroupId(Integer groupId) {
+		this.groupId = groupId;
 	}
-
-	public String getName() {
-		return name;
+	public String getGroupName() {
+		return groupName;
 	}
-
-	public void setName(String name) {
-		this.name = name;
+	public void setGroupName(String groupName) {
+		this.groupName = groupName;
 	}
-
 	public String getType() {
 		return type;
 	}
-
 	public void setType(String type) {
 		this.type = type;
 	}
-
-
 	public Integer getParentId() {
 		return parentId;
 	}
-
 	public void setParentId(Integer parentId) {
 		this.parentId = parentId;
 	}
-
 	public String getRemarks() {
 		return remarks;
 	}
-
 	public void setRemarks(String remarks) {
 		this.remarks = remarks;
 	}
-
+	
 }

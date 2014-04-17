@@ -65,11 +65,17 @@ public class JsonUtil implements JsonValueProcessor {
 	}
 
 	public static JSONArray object2JsonArray(Object object) {
+		if(object == null){
+			return new JSONArray();
+		}
 		JSONArray jsonArray = JSONArray.fromObject(object);
 		return jsonArray;
 	}
 
 	public static String object2JsonStr(Object object) {
+		if(object == null){
+			return "";
+		}
 		String s = JSONArray.fromObject(object).toString();
 		return s;
 	}

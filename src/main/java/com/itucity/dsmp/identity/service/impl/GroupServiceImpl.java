@@ -11,6 +11,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itucity.dsmp.common.page.PagesInfo;
 import com.itucity.dsmp.identity.dao.GroupDao;
 import com.itucity.dsmp.identity.dao.entity.GroupPO;
 import com.itucity.dsmp.identity.service.GroupService;
@@ -64,19 +65,8 @@ public class GroupServiceImpl implements GroupService{
 	}
 
 	@Override
-	public GroupVO getGroupByName(String groupName) {
-		GroupPO po = groupDao.findByName(groupName);
-		if(po != null){
-			return groupPOToVO(po);
-		}
-		logger.info(String.format("Group [name : %s] not found", groupName));
-		return null;
-	}
-
-	@Override
-	public List<GroupVO> getGroupByLike(String nameLike, Integer first, 
-			Integer max) {
-		List<GroupPO> pos =  groupDao.findByLike(nameLike, first, max);
+	public List<GroupVO> getGroupByLike(String nameLike) {
+		List<GroupPO> pos =  groupDao.findByNameLike(nameLike);
 		
 		List<GroupVO> vos = new ArrayList<GroupVO>();
 		for(GroupPO po : pos){
@@ -98,10 +88,10 @@ public class GroupServiceImpl implements GroupService{
 
 	@Override
 	public Boolean editGroup(GroupVO group) {
-		GroupPO tempPO = groupDao.find(GroupPO.class, group.getId());
+		GroupPO tempPO = groupDao.find(GroupPO.class, group.getGroupId());
 		if(tempPO == null){
 			logger.info(String.format("Group [name : %s, id : %d] not found", 
-					group.getName(), group.getId()));
+					group.getGroupName(), group.getGroupId()));
 			return false;
 		}
 		GroupPO po = new GroupPO();
@@ -126,11 +116,6 @@ public class GroupServiceImpl implements GroupService{
 		
 		BeanUtils.copyProperties(po, vo);
 		
-		GroupPO ppo = po.getParentGroup();
-		if(ppo != null){
-			vo.setParentId(po.getParentGroup().getId());
-		}
-		
 //		List<UserPO> users = po.getUsers();
 //		for(UserPO user : users){
 //			UserVO uvo = new UserVO();
@@ -152,11 +137,6 @@ public class GroupServiceImpl implements GroupService{
 		
 		BeanUtils.copyProperties(vo, po);
 		
-		if(vo.getParentId() != null){
-			GroupPO ppo = groupDao.find(GroupPO.class, vo.getParentId());
-			po.setParentGroup(ppo);
-		}
-		
 //		List<UserVO> users = vo.getUser();
 //		for(UserVO user : users){
 //			UserPO upo = new UserPO();
@@ -172,6 +152,33 @@ public class GroupServiceImpl implements GroupService{
 //		}
 		
 		return po;
+	}
+
+	@Override
+	public PagesInfo<GroupVO> getGroupByPage(Integer limit, Integer pageNo) {
+		PagesInfo<GroupPO> page = new PagesInfo<GroupPO>();
+		page.setCountPerPage(limit);
+		page.setPageNumber(pageNo);
+		
+		PagesInfo<GroupPO> result =  groupDao.findByPage(page);
+		
+		List<GroupPO> pos = result.getResultsList();
+		
+		List<GroupVO> vos = new ArrayList<GroupVO>();
+		for(GroupPO po : pos){
+			GroupVO vo = new GroupVO();
+			vo = groupPOToVO(po);
+			vos.add(vo);
+		}
+		
+		PagesInfo<GroupVO> pages = new PagesInfo<GroupVO>();
+		pages.setCountPerPage(limit);
+		pages.setPageNumber(pageNo);
+		pages.setResultsList(vos);
+		pages.setTotalPage(result.getTotalPage());
+		pages.setTotalRecord(result.getTotalRecord());
+		
+		return pages;
 	}
 
 }

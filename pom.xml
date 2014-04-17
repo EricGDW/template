@@ -30,7 +30,9 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<spring.version>4.0.3.RELEASE</spring.version>
-		<hibernate.version>4.3.4.Final</hibernate.version>
+		<spring.security.version>3.2.3.RELEASE</spring.security.version>
+		<!-- <hibernate.version>4.3.4.Final</hibernate.version> -->
+		<hibernate.version>3.6.10.Final</hibernate.version>
 		<hibernate-validator.version>5.1.0.Final</hibernate-validator.version>
 		<slf4j.version>1.7.5</slf4j.version>
 		<log4j.version>1.2.17</log4j.version>
@@ -150,6 +152,28 @@
 		</dependency> -->
 		<!-- AOP end -->
 		
+		<!-- Spring Security Start -->
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-web</artifactId>
+			<version>${spring.security.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-taglibs</artifactId>
+			<version>${spring.security.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-core</artifactId>
+			<version>${spring.security.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-config</artifactId>
+			<version>${spring.security.version}</version>
+		</dependency>
+		<!-- Spring Security End -->
 		<!-- SPRING end -->
 
 		<!-- hibernate -->
@@ -160,15 +184,9 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-annotations</artifactId>
-			<version>3.5.6-Final</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-commons-annotations</artifactId>
-			<version>3.2.0.Final</version>
+			<groupId>javassist</groupId>
+			<artifactId>javassist</artifactId>
+			<version>3.12.1.GA</version>
 		</dependency>
 		            
 		<dependency>
@@ -181,12 +199,18 @@
     		<groupId>com.googlecode</groupId>
     		<artifactId>hibernate-memcached</artifactId>
     		<version>1.2.2</version>
+    		<exclusions>
+				<exclusion>
+					<artifactId>hibernate</artifactId>
+					<groupId>org.hibernate</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		
 		<dependency>
-			<groupId>com.google.code.simple-spring-memcached</groupId>
-			<artifactId>simple-spring-memcached</artifactId>
-			<version>3.4.0</version>
+  			<groupId>net.spy</groupId>
+  			<artifactId>spymemcached</artifactId>
+  			<version>2.11.0</version>
 		</dependency>
 
 		<!-- jdbc driver -->
@@ -201,6 +225,13 @@
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-validator</artifactId>
 			<version>${hibernate-validator.version}</version>
+		</dependency>
+		
+		<!--HttpClient -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.3.3</version>
 		</dependency>
 		
 		<dependency>
@@ -236,33 +267,6 @@
 			<version>${slf4j.version}</version>
 			<scope>runtime</scope>
 		</dependency>
-		<!-- common-logging 实际调用slf4j -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jcl-over-slf4j</artifactId>
-			<version>${slf4j.version}</version>
-			<scope>runtime</scope>
-		</dependency>
-		<!-- java.util.logging 实际调用slf4j -->
-		<dependency>
-        	<groupId>org.slf4j</groupId>
-        	<artifactId>jul-to-slf4j</artifactId>
-        	<version>${slf4j.version}</version>
-        	<scope>runtime</scope>
-      	</dependency>
-      	<!-- log4j -->
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>${log4j.version}</version>
-		</dependency>
-		<!-- log4jdbc -->
-		<dependency>
-			<groupId>org.lazyluke</groupId>
-			<artifactId>log4jdbc-remix</artifactId>
-			<version>0.2.7</version>
-			<scope>runtime</scope>
-		</dependency>
 		<!-- LOGGING end -->
 		
 		<!-- jackson -->
@@ -282,6 +286,13 @@
 			<groupId>net.sf.json-lib</groupId>
 			<artifactId>json-lib</artifactId>
 			<version>2.4</version>
+			<classifier>jdk15</classifier>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20140107</version>
 		</dependency>
 		
 		<!-- GENERAL UTILS begin -->
@@ -363,6 +374,41 @@
 	</dependencies>
 	<build>
 		<finalName>template</finalName>
-		<outputDirectory>${project.basedir}/src/main/webapp/WEB-INF/classes/</outputDirectory>
+		<defaultGoal>compile</defaultGoal>
+
+		<outputDirectory>src/main/webapp/WEB-INF/classes</outputDirectory>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.0</version>
+				<inherited>true</inherited>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<version>3.1.1</version>
+				<configuration>
+					<downloadSources>true</downloadSources>
+					<downloadJavadocs>true</downloadJavadocs>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>tomcat-maven-plugin</artifactId>
+				<version>1.1</version>
+				<configuration>
+					<url>http://localhost:8080/manager/text</url>
+					<server>server</server>
+					<username>admin</username>
+					<password>admin</password>
+					<path>/template</path>
+				</configuration>
+			</plugin>
+		</plugins>
 	</build>
 </project>

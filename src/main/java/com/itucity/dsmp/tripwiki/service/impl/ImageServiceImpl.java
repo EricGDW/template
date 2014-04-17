@@ -1,8 +1,5 @@
 package com.itucity.dsmp.tripwiki.service.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.annotation.Resource;
 
 import org.slf4j.Logger;
@@ -10,12 +7,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
-import com.itucity.dsmp.tripwiki.dao.PlaceDao;
 import com.itucity.dsmp.tripwiki.dao.ImageDao;
-import com.itucity.dsmp.tripwiki.dao.entity.PlacePO;
+import com.itucity.dsmp.tripwiki.dao.PlaceDao;
 import com.itucity.dsmp.tripwiki.dao.entity.ImagePO;
+import com.itucity.dsmp.tripwiki.dto.ImageVO;
 import com.itucity.dsmp.tripwiki.service.ImageService;
-import com.itucity.dsmp.tripwiki.service.model.ImageVO;
 
 /**
  * 
@@ -34,7 +30,7 @@ public class ImageServiceImpl implements ImageService{
 	private ImageDao imageDao;
 	
 	@Resource
-	private PlaceDao destinationDao;
+	private PlaceDao placeDao;
 	
 	
 	private ImageVO imagePOToVO(ImagePO po) {
@@ -55,7 +51,7 @@ public class ImageServiceImpl implements ImageService{
 	
 	@Override
 	public ImageVO getImageById(Integer id) {
-		ImagePO po = imageDao.find(ImagePO.class, id);
+		ImagePO po = imageDao.findById(id);
 		
 		if(po != null){
 			ImageVO vo = new ImageVO();
@@ -67,52 +63,12 @@ public class ImageServiceImpl implements ImageService{
 		return null;
 	}
 
-	
-
-	@Override
-	public List<ImageVO> getImageByType(String type) {
-		List<ImageVO> vos = new ArrayList<ImageVO>();
-		
-		List<ImagePO> pos = imageDao.findByType(type);
-		
-		for(ImagePO po : pos){
-			ImageVO vo = new ImageVO();
-			vo = imagePOToVO(po);
-			
-			vos.add(vo);
-		}
-		
-		return vos;
-	}
-
-	@Override
-	public List<ImageVO> getImageByDescription(String description) {
-		List<ImageVO> vos = new ArrayList<ImageVO>();
-		
-		List<ImagePO> pos = imageDao.findByDescription(description);
-		
-		for(ImagePO po : pos){
-			ImageVO vo = new ImageVO();
-			vo = imagePOToVO(po);
-			
-			vos.add(vo);
-		}
-		
-		return vos;
-	}
-
 	@Override
 	public Integer addImage(ImageVO image) {
 		ImagePO po = new ImagePO();
 		
 		po = imageVOToPO(image);
-		po.setImageId(null);
 		
-		Integer id = image.getDestinationId();
-		if( id != null){
-			PlacePO d = destinationDao.find(PlacePO.class, id);
-			po.setDestination(d);
-		}
 		imageDao.save(po);
 		
 		return po.getImageId();

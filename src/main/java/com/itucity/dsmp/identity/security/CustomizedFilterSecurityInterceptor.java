@@ -19,7 +19,6 @@ import org.springframework.security.access.intercept.AbstractSecurityInterceptor
 import org.springframework.security.access.intercept.InterceptorStatusToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.web.FilterInvocation;
-import org.springframework.stereotype.Service;
 
 /**
  * 自定义的filter，必须包含authenticationManager,accessDecisionManager,
@@ -28,7 +27,6 @@ import org.springframework.stereotype.Service;
  * @author Eric
  * @since 0.0.1 <p>2014-3-15 下午3:25:09</p>
  */
-
 public class CustomizedFilterSecurityInterceptor 
 				extends AbstractSecurityInterceptor implements Filter {
 	private static Logger logger = LoggerFactory

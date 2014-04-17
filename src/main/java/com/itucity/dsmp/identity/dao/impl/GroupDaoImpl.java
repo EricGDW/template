@@ -1,14 +1,15 @@
 package com.itucity.dsmp.identity.dao.impl;
 
+import java.util.Hashtable;
 import java.util.List;
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.MatchMode;
-import org.hibernate.criterion.Restrictions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.itucity.dsmp.common.base.impl.BaseDao;
+import com.itucity.dsmp.common.page.PagesInfo;
 import com.itucity.dsmp.identity.dao.GroupDao;
 import com.itucity.dsmp.identity.dao.entity.GroupPO;
 
@@ -22,38 +23,87 @@ import com.itucity.dsmp.identity.dao.entity.GroupPO;
 @Repository("groupDao")
 public class GroupDaoImpl extends BaseDao implements GroupDao{
 
-	@Override
-	public GroupPO findByName(String groupName) {
-		return (GroupPO) getSession().createCriteria(GroupPO.class)
-				.add(Restrictions.eq("name", groupName)).uniqueResult();
-	}
-
-	@SuppressWarnings("unchecked")
+	private static Logger log = LoggerFactory
+			.getLogger(UserDaoImpl.class);
+	
 	@Override
 	public List<GroupPO> findAll() {
-		return (List<GroupPO>) getSession().createCriteria(GroupPO.class).list();
+		StringBuffer hql = new StringBuffer();
+		hql.append("FROM GroupPO t WHERE 1 = 1 ");
+		List<GroupPO> groups = hqlQuery(hql.toString());
+		return groups;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public List<GroupPO> findByType(String type) {
-		return (List<GroupPO>) getSession().createCriteria(GroupPO.class)
-				.add(Restrictions.eq("type", type)).list();
+		StringBuffer hql = new StringBuffer();
+		Hashtable<String, Object> param = new Hashtable<String, Object>();
+		hql.append("FROM GroupPO t WHERE 1 = 1 ");
+		hql.append("AND t.type =:type");
+		param.put("type", type);
+		List<GroupPO> groups = hqlQuery(hql.toString(), param);
+		return groups;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public List<GroupPO> findByLike(String like, Integer first, Integer max) {
-		Criteria criteria = getSession().createCriteria(GroupPO.class)
-							.add(Restrictions.like("name", like, MatchMode.ANYWHERE));	
-		if(first != null){
-			criteria.setFirstResult(first >= 0 ? first : 0);
-		}
-		if(max != null ){
-			criteria.setMaxResults(max > 0 ? max : 10);
-		}
+	public List<GroupPO> findByNameLike(String name) {
+		StringBuffer hql = new StringBuffer();
+		Hashtable<String, Object> param = new Hashtable<String, Object>();
+		hql.append("FROM GroupPO t WHERE 1 = 1 ");
+		hql.append("AND t.groupName LIKE:name");
+		param.put("name", name);
+		List<GroupPO> groups = hqlQuery(hql.toString(), param);
+		return groups;
+	}
+
+	@Override
+	public PagesInfo<GroupPO> findByPage(PagesInfo<GroupPO> pagesInfo) {
+		StringBuffer hql = new StringBuffer();
 		
-		return (List<GroupPO>) criteria.list();
+		hql.append("FROM GroupPO t WHERE 1 = 1 ");
+		
+		PagesInfo<GroupPO> list = hqlPageQuery(hql.toString(), pagesInfo);
+	
+		return list;
+	}
+
+	@Override
+	public GroupPO findById(Integer id) {
+		GroupPO group = super.find(GroupPO.class, id);
+		if(group == null){
+			log.info(String.format("Group [id : %d] not found", id));
+			return null;
+		}
+		return group;
+	}
+
+	@Override
+	public Integer save(GroupPO group) {
+		super.save(group);
+		return group.getGroupId();
+	}
+
+	@Override
+	public Boolean update(GroupPO group) {
+		super.update(group);
+		return true;
+	}
+
+	@Override
+	public Boolean delete(GroupPO group) {
+		super.delete(group);
+		return true;
+	}
+
+	@Override
+	public Boolean deleteById(Integer id) {
+		StringBuffer hql = new StringBuffer();
+		Hashtable<String, Object> param = new Hashtable<String, Object>();
+		hql.append("DELETE FROM GroupPO t WHERE 1 = 1 ");
+		hql.append("AND t.GroupId =:id ");
+		param.put("id", id);
+		hqlUpdate(hql.toString(), param);
+		return true;
 	}
 
 }

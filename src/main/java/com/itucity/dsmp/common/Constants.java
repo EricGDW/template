@@ -46,9 +46,9 @@ public class Constants extends ConfigurableConstants {
      */
     public final static String STATUS_KEY = "status";
     
-    public final static String STATUS_FAILED = "FAILED";
+    public final static String STATUS_FAILED = "0";
     
-    public final static String STATUS_SUCCESS = "SUCCESS";
+    public final static String STATUS_SUCCESS = "1";
     
     /**
      * session 中存储token的key常量名
@@ -83,14 +83,19 @@ public class Constants extends ConfigurableConstants {
     
     public final static String TAGS = "tags";
     
+    
+    public final static String ERROR_CODE = "errcode";
+    public final static String ERROR_MSG = "errmsg";
+    
     /**
      * 错误码
      */
     public final static String ERROR_INVALID_PARAMETER = "1";
-
 	public static final String ERROR_NOT_FOUND = "2";
-
 	public static final String ERROR_SERVER = "3";
+	public static final String ERROR_ADD_DATA = "4";
+	public static final String ERROR_UPDATE_DATA = "5";
+	public static final String ERROR_DELETE_DATA = "6";
 	
 	public static String getError(String errorCode){
 		String errmsg = "";

@@ -2,7 +2,7 @@ package com.itucity.dsmp.identity.service.model;
 
 import java.util.List;
 
-import com.itucity.dsmp.identity.dao.entity.GroupPO;
+import com.itucity.dsmp.identity.dao.entity.RolePO;
 
 /**
  * @author Eric
@@ -18,7 +18,7 @@ public class ResourceVO {
 	
 	private String content; //资源内容
 	
-	private List<GroupPO> owner; //资源拥有者
+	private List<RolePO> owner; //资源权限
 
 	public Integer getId() {
 		return id;
@@ -44,14 +44,18 @@ public class ResourceVO {
 		this.content = content;
 	}
 
-	public List<GroupPO> getOwner() {
+	public List<RolePO> getOwner() {
 		return owner;
 	}
 
-	public void setOwner(List<GroupPO> owner) {
+	public void setOwner(List<RolePO> owner) {
 		this.owner = owner;
 	}
-	
-	
+
+	@Override
+	public String toString() {
+		return "ResourceVO [id=" + id + ", type=" + type + ", content="
+				+ content + ", owner=" + owner + "]";
+	}
 
 }

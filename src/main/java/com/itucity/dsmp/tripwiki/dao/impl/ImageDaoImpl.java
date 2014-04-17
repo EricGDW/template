@@ -1,8 +1,5 @@
 package com.itucity.dsmp.tripwiki.dao.impl;
 
-import java.util.Hashtable;
-import java.util.List;
-
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,37 +20,33 @@ import com.itucity.dsmp.tripwiki.dao.entity.ImagePO;
 public class ImageDaoImpl extends BaseDao implements ImageDao {
 
 	@Override
-	public List<ImagePO> findByType(String type) {
-		StringBuffer hql = new StringBuffer();
-		Hashtable<String, Object> param = new Hashtable<String, Object>();
-		
-		hql.append("FROM ImagePO t WHERE 1 = 1 ");
-		
-		hql.append("AND t.type =:type ");
-		
-		param.put("type", type);
-		
-		List<ImagePO> list = hqlQuery(hql.toString(), param);
-		
-		return list;
+	public ImagePO findById(Integer imageId) {
+		return super.find(ImagePO.class, imageId);
 	}
 
 	@Override
-	public List<ImagePO> findByDescription(String description) {
-		StringBuffer hql = new StringBuffer();
-		Hashtable<String, Object> param = new Hashtable<String, Object>();
-		
-		hql.append("FROM ImagePO t WHERE 1 = 1 ");
-		
-		hql.append("AND t.description LIKE:description ");
-		
-		param.put("description", description);
-		
-		List<ImagePO> list = hqlQuery(hql.toString(), param);
-		
-		return list;
+	public Integer save(ImagePO image) {
+		super.save(image);
+		return image.getImageId();
 	}
 
-	
+	@Override
+	public Boolean update(ImagePO image) {
+		super.update(image);
+		return true;
+	}
+
+	@Override
+	public Boolean delete(ImagePO image) {
+		super.delete(image);
+		return true;
+	}
+
+	@Override
+	public Boolean deleteById(Integer imageId) {
+		ImagePO image = findById(imageId);
+		return delete(image);
+	}
+
 
 }

@@ -1,8 +1,11 @@
 package com.itucity.dsmp.tripwiki.service.impl;
 
 import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -12,19 +15,22 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itucity.dsmp.common.page.PagesInfo;
 import com.itucity.dsmp.identity.dao.UserDao;
-import com.itucity.dsmp.identity.dao.entity.UserPO;
+import com.itucity.dsmp.tripwiki.dao.ImageDao;
+import com.itucity.dsmp.tripwiki.dao.LineDao;
 import com.itucity.dsmp.tripwiki.dao.PlaceDao;
 import com.itucity.dsmp.tripwiki.dao.TagDao;
-import com.itucity.dsmp.tripwiki.dao.LineDao;
-import com.itucity.dsmp.tripwiki.dao.SocialDataDao;
+import com.itucity.dsmp.tripwiki.dao.entity.ImagePO;
+import com.itucity.dsmp.tripwiki.dao.entity.LinePO;
 import com.itucity.dsmp.tripwiki.dao.entity.PlacePO;
 import com.itucity.dsmp.tripwiki.dao.entity.TagPO;
-import com.itucity.dsmp.tripwiki.dao.entity.LinePO;
-import com.itucity.dsmp.tripwiki.dao.entity.SocialDataPO;
-import com.itucity.dsmp.tripwiki.service.SocialEnum;
+import com.itucity.dsmp.tripwiki.dto.LineCondition;
+import com.itucity.dsmp.tripwiki.dto.LineVO;
+import com.itucity.dsmp.tripwiki.dto.PlaceVO;
+import com.itucity.dsmp.tripwiki.dto.TagVO;
 import com.itucity.dsmp.tripwiki.service.LineService;
-import com.itucity.dsmp.tripwiki.service.model.LineVO;
+import com.itucity.dsmp.tripwiki.util.Distance;
 
 
 /**
@@ -34,7 +40,7 @@ import com.itucity.dsmp.tripwiki.service.model.LineVO;
  * 
  * 3/24/2014
  */
-@Service("travelLineService")
+@Service("lineService")
 @Transactional
 public class LineServiceImpl implements LineService {
 	
@@ -48,176 +54,74 @@ public class LineServiceImpl implements LineService {
 	private TagDao tagDao;
 	
 	@Resource
-	private SocialDataDao socialDataDao;
-	
-	@Resource
 	private UserDao userDao;
 	
 	@Resource
-	private PlaceDao destinationDao;
+	private PlaceDao placeDao;
 	
-	private LineVO travelLinePOToVO(LinePO po) {
+	@Resource
+	private ImageDao imageDao;
+	
+	private LineVO linePOToVO(LinePO po) {
 		LineVO vo = new LineVO();
 		
 		BeanUtils.copyProperties(po, vo);
 		
-		List<Integer> dids = new ArrayList<Integer>();
-		
-		String destinations = po.getDestinations();
-		
-		String[] strs = destinations.split("->");
-		
-		for(int i = 0; i < strs.length; i++){
-			dids.add(Integer.parseInt(strs[i]));
-		}
-		
-		vo.setDestinationList(dids);
-		
 		return vo;
 	}
 	
-	private LinePO travelLineVOToPO(LineVO travelLine) {
+	private LinePO LineVOToPO(LineVO line) {
 		LinePO po = new LinePO();
 		
-		BeanUtils.copyProperties(travelLine, po);
+		BeanUtils.copyProperties(line, po);
 		
-		String destinations = "";
-		for(Integer id : travelLine.getDestinationList()){
-			destinations += id.toString() + "->";
-		}
-		
-		po.setDestinations(destinations);
 		return po;
 	}
 	
 	@Override
-	public LineVO getTravelLineById(Integer id) {
-		LinePO po = lineDao.find(LinePO.class, id);
+	public LineVO getLineById(Integer id) {
+		LinePO po = lineDao.findById(id);
 		
 		if(po != null){
 			LineVO vo = new LineVO();
-			vo = travelLinePOToVO(po);
+			vo = linePOToVO(po);
 			return vo;
 		}
 		
-		logger.info(String.format("TravelLine [id : %d] not found", id));
-		return null;
-	}
-
-	
-
-	@Override
-	public List<LineVO> getTravelLineByType(String type) {
-		List<LineVO> vos = new ArrayList<LineVO>();
-		
-		List<LinePO> pos = lineDao.findByType(type);
-		
-		for(LinePO po : pos){
-			LineVO vo = new LineVO();
-			vo = travelLinePOToVO(po);
-			
-			vos.add(vo);
-		}
-		
-		return vos;
-	}
-
-	@Override
-	public List<LineVO> getTravelLineByTags(List<String> tags) {
-//		List<LineVO> vos = new ArrayList<LineVO>();
-//		
-//		if(tags.size() == 0){
-//			return vos;
-//		}
-//		
-//		List<LinePO> pos = lineDao.findByTag(tags.get(0));
-//
-//		tags.remove(0);
-//		
-//		for(Iterator<LinePO> iter = pos.iterator(); iter.hasNext();){
-//			LinePO po = (LinePO) iter.next();
-//			
-//			List<TagPO> tagList = po.getRelatedTags();
-//			
-//			List<String> tagNames = new ArrayList<String>();
-//			for(TagPO tag : tagList){
-//				tagNames.add(tag.getName());
-//			}
-//			
-//			for(String tag : tags){
-//				if(!tagNames.contains(tag)){
-//					iter.remove();
-//					continue;
-//				}
-//			}
-//		}
-//		
-//		for(LinePO po : pos){
-//			LineVO vo = new LineVO();
-//			vo = travelLinePOToVO(po);
-//			
-//			vos.add(vo);
-//		}
-//		
-//		return vos;
+		logger.info(String.format("line [id : %d] not found", id));
 		return null;
 	}
 
 	@Override
-	public Integer addTravelLine(LineVO travelLine) {
+	public Integer addLine(LineVO line) {
 		LinePO po = new LinePO();
-		
-		po = travelLineVOToPO(travelLine);
-		po.setLineId(null);
-		
-		List<TagPO> tags = new ArrayList<TagPO>();
-		
-		List<Integer> ids = travelLine.getTagList();
-		for(Integer id : ids){
-			TagPO tag = tagDao.find(TagPO.class, id);
-			
-			tags.add(tag);
-		}
-		//po.setRelatedTags(tags);
-		
-		List<PlacePO> des = new ArrayList<PlacePO>();
-		
-		ids = travelLine.getDestinationList();
-		for(Integer id : ids){
-			PlacePO d = destinationDao.find(PlacePO.class, id);
-			
-			des.add(d);
-		}
-		//po.setRelatedDestinations(des);
-		
+		po = LineVOToPO(line);
 		lineDao.save(po);
-		
 		return po.getLineId();
 	}
 
 
 
 	@Override
-	public Boolean updateTravelLine(LineVO travelLine) {
-		LinePO po = lineDao.find(LinePO.class, 
-				travelLine.getLineId());
+	public Boolean updateLine(LineVO line) {
+		LinePO po = lineDao.findById(line.getLineId());
 		if(po == null){
-			logger.info(String.format("TravelLine [id : %d] not found", 
-					travelLine.getLineId()));
+			logger.info(String.format("line [id : %d] not found", 
+					line.getLineId()));
 			return false;
 		}
 		
-		BeanUtils.copyProperties(travelLine, po);
+		BeanUtils.copyProperties(line, po);
 		lineDao.save(po);
 		
 		return true;
 	}
 
 	@Override
-	public Boolean deleteTravelLine(Integer id) {
-		LinePO po = lineDao.find(LinePO.class, id);
+	public Boolean deleteLine(Integer id) {
+		LinePO po = lineDao.findById(id);
 		if(po == null){
-			logger.info(String.format("TravelLine [id : %d] not found", id ));
+			logger.info(String.format("line [id : %d] not found", id ));
 			return false;
 		}
 		lineDao.delete(po);
@@ -225,84 +129,118 @@ public class LineServiceImpl implements LineService {
 	}
 
 	@Override
-	public Integer favouriteTravelLine(Integer uid, Integer lineId) {
-		LinePO po = lineDao.find(LinePO.class, lineId);
-		UserPO user = userDao.find(UserPO.class, uid);
+	public List<PlaceVO> getLinePlaces(Integer lineId, Integer sort) {
 		
-		po.setFavouriteCount(po.getFavouriteCount() + 1);
-		lineDao.save(po);
+		List<PlaceVO> result = new ArrayList<PlaceVO>();
 		
-		SocialDataPO collection = new SocialDataPO();
+		List<PlacePO> places = new ArrayList<PlacePO>();
+		places = lineDao.findLinePlace(lineId);
 		
-		//collection.setUser(user);
-		collection.setSourceId(lineId);
-		collection.setSourceType(SocialEnum.LINE_AGREE.toString());
-		collection.setCtime(Calendar.getInstance().getTime().toString());
-		
-		socialDataDao.save(collection);
-		
-		return po.getFavouriteCount();
-	}
-
-	@Override
-	public Integer shareTravelLine(Integer uid, Integer lineId) {
-		LinePO po = lineDao.find(LinePO.class, lineId);
-		
-		po.setShareCount(po.getShareCount() + 1);
-		lineDao.save(po);
-		
-		SocialDataPO collection = new SocialDataPO();
-		
-		collection.setUid(uid);
-		collection.setSourceId(lineId);
-		collection.setSourceType(SocialEnum.LINE_SHARE.toString());
-		collection.setCtime(Calendar.getInstance().getTime().toString());
-		
-		socialDataDao.save(collection);
-		
-		return po.getShareCount();
-	}
-
-	@Override
-	public List<LineVO> recommendationTravelLine(Integer uid) {
-		// TODO Auto-generated method stub
-		
-		return null;
-	}
-
-	@Override
-	public List<LineVO> topTravelLine(Integer num, Integer sort) {
-		List<LineVO> vos = new ArrayList<LineVO>();
-		
-		List<LinePO> pos = lineDao.findTop(num, sort);
-		
-		for(LinePO po : pos){
-			LineVO vo = new LineVO();
-			vo = travelLinePOToVO(po);
+		for(PlacePO place : places){
+			PlaceVO vo = new PlaceVO();
+			BeanUtils.copyProperties(place, vo);
 			
-			vos.add(vo);
+			/**
+			 * 临时增加景点封面信息，后面需要改
+			 */
+			ImagePO image = imageDao.findById(place.getPlaceId());
+			vo.setCoverUrl(image.getSmall());
+			result.add(vo);
 		}
 		
-		return vos;
+		
+		
+		//根据经纬度排序
+		Collections.sort(result, new Comparator<PlaceVO>(){
+			@Override
+			public int compare(PlaceVO o1, PlaceVO o2) {
+				PlaceVO p1=(PlaceVO)o1;
+				PlaceVO p2=(PlaceVO)o2;
+				int flag = p1.getLongitude().compareTo(p2.getLongitude());
+				if(flag == 0){
+					flag = p1.getLatitude().compareTo(p2.getLatitude());
+					if(flag == 0){
+						return p1.getTitle().compareTo(p2.getTitle());
+					}
+					else{
+						return flag;
+					}
+				}else{
+					return flag;
+				}
+			}
+		});
+ 		
+		if(sort == 2){
+			Collections.reverse(result);
+		}
+		return result;
 	}
 
 	@Override
-	public Integer collectTravelLine(Integer uid, Integer lineId) {
-		SocialDataPO collection = new SocialDataPO();
+	public PagesInfo<Object> getLineByCondition(LineCondition condition) {
+		PagesInfo<Object> result = new PagesInfo<Object>();
 		
-		collection.setSourceId(lineId);
-		collection.setUid(uid);
-		collection.setSourceType(SocialEnum.LINE_COLLECT.toString());
-		collection.setCtime(Calendar.getInstance().getTime().toString());
+		PagesInfo<LinePO> page = new PagesInfo<LinePO>();
+		page.setCountPerPage(condition.getPageSortCondition().getCountPerPage());
+		page.setPageNumber(condition.getPageSortCondition().getPageIndex());
 		
-		socialDataDao.save(collection);
-		LinePO line = lineDao.find(LinePO.class, lineId);
+		page = lineDao.findByCondition(condition, page);
 		
-		line.setCollectCount(line.getCollectCount()+1);
-		lineDao.save(line);
+		List<Object> linevos = new ArrayList<Object>();
+		List<LinePO> lines = page.getResultsList();
 		
-		return line.getCollectCount();
+		/*for(LinePO line : lines){
+			List<PlacePO> places = lineDao.findLinePlace(line.getLineId());
+			for(PlacePO place : places){
+				Double distance = Distance.getDistance(condition.getLatitude(), 
+						condition.getLongitude(), place.getLatitude(), place.getLongitude());
+			}
 			
+			
+			
+		}*/
+		
+		for(LinePO line : lines){
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("lineId", line.getLineId());
+			map.put("title", line.getTitle());
+			map.put("description", line.getDescription());
+			map.put("bestTime", line.getBestTime());
+			
+			ImagePO cover = imageDao.findById(line.getCoverId());
+			map.put("coverUrl", cover.getSmall());
+			
+			List<String> placeNameList = new ArrayList<String>();
+			List<PlacePO> places = lineDao.findLinePlace(line.getLineId());
+			for(PlacePO place : places){
+				placeNameList.add(place.getTitle());
+			}
+			map.put("places", placeNameList);
+			
+			linevos.add(map);
+		}
+		result.setResultsList(linevos);
+		result.setCountPerPage(page.getCountPerPage());
+		result.setPageNumber(page.getPageNumber());
+		result.setTotalPage(page.getTotalPage());
+		result.setTotalRecord(page.getTotalRecord());
+		
+		
+		return result;
+		
 	}
-	
+
+	@Override
+	public List<TagVO> getLineTag(Integer lineId) {
+		List<TagVO> result = new ArrayList<TagVO>();
+		
+		List<TagPO> tags = lineDao.findLineTag(lineId);
+		for(TagPO tag : tags){
+			TagVO vo = new TagVO();
+			BeanUtils.copyProperties(tag, vo);
+			result.add(vo);
+		}
+		return result;
+	}
 }

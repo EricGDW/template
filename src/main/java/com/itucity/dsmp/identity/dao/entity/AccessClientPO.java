@@ -24,7 +24,7 @@ import org.hibernate.annotations.Type;
  * 3/13/2014
  */
 @Entity
-@Table(name = "base_access_client", catalog = "dsmp")
+@Table(name = "bs_access_client")
 public class AccessClientPO implements Serializable{
 
 	/**

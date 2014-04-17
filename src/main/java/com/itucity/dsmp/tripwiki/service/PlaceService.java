@@ -1,9 +1,9 @@
 package com.itucity.dsmp.tripwiki.service;
 
-import java.util.List;
-
-import com.itucity.dsmp.tripwiki.service.model.PlaceVO;
-import com.itucity.dsmp.tripwiki.service.model.ImageVO;
+import com.itucity.dsmp.common.page.PagesInfo;
+import com.itucity.dsmp.tripwiki.dto.ImageCondition;
+import com.itucity.dsmp.tripwiki.dto.ImageVO;
+import com.itucity.dsmp.tripwiki.dto.PlaceVO;
 
 
 /**
@@ -14,79 +14,58 @@ import com.itucity.dsmp.tripwiki.service.model.ImageVO;
  * 3/24/2014
  */
 public interface PlaceService {
-
-	/**
-	 * 获取地点相关信息
-	 * @param id
-	 * @return
-	 */
-	PlaceVO getDestinationById(Integer id);
 	
 	/**
 	 * 获取地点相关信息
-	 * @param name
+	 * @param id
 	 * @return
 	 */
-	PlaceVO getDestinationByName(String name);
+	PlaceVO getPlaceById(Integer id);
 	
 	/**
 	 * 
-	 * @param type
+	 * @param Place
 	 * @return
 	 */
-	List<PlaceVO> getDestinationByTag(String tag);
-	
-	/**
-	 * 按地点标签查询地点,同时满足所有的标签条件
-	 * @param tag
-	 * @return
-	 */
-	List<PlaceVO> getDestinationByTags(List<String> tags);
+	Integer addPlace(PlaceVO Place);
 	
 	/**
 	 * 
-	 * @param destination
+	 * @param Place
 	 * @return
 	 */
-	Integer addDestination(PlaceVO destination);
-	
-	/**
-	 * 
-	 * @param destination
-	 * @return
-	 */
-	Boolean updateDestination(PlaceVO destination);
+	Boolean updatePlace(PlaceVO Place);
 	
 	/**
 	 * 
 	 * @param id
 	 * @return
 	 */
-	Boolean deleteDestination(Integer id);
+	Boolean deletePlace(Integer id);
 
+	/**
+	 * 分页获取景点照片列表
+	 * @param id 景点ID
+	 * @param pageNO    获取第几页
+	 * @param pageSize  每页大小
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
+	PagesInfo<ImageVO> getPlaceImages(PagesInfo pagesInfo, ImageCondition condition);
 	
-
 	/**
-	 * 景点点赞
-	 * @param uid
+	 * 添加景点标签
 	 * @param placeId
+	 * @param tagId
 	 * @return
 	 */
-	Integer favouriteDestination(Integer uid, Integer placeId);
-
+	Boolean addPlaceTag(Integer placeId, Integer tagId);
 	
 	/**
-	 * 景点分享
-	 * @param uid
+	 * 添加景点图片
 	 * @param placeId
+	 * @param imageId
 	 * @return
 	 */
-	Integer shareDestination(Integer uid, Integer placeId);
-
-	/**
-	 * 景点照片列表
-	 * @param id
-	 * @return
-	 */
-	List<ImageVO> destinationImages(Integer id);
+	Boolean addPlaceImage(Integer placeId, Integer imageId);
 }

@@ -1,8 +1,6 @@
 package com.itucity.dsmp.tripwiki.service;
 
-import java.util.List;
-
-import com.itucity.dsmp.tripwiki.service.model.ImageVO;
+import com.itucity.dsmp.tripwiki.dto.ImageVO;
 
 
 public interface ImageService {
@@ -13,20 +11,6 @@ public interface ImageService {
 	 * @return
 	 */
 	ImageVO getImageById(Integer id);
-	
-	/**
-	 * 
-	 * @param type
-	 * @return
-	 */
-	List<ImageVO> getImageByType(String type);
-	
-	/**
-	 * 
-	 * @param description
-	 * @return
-	 */
-	List<ImageVO> getImageByDescription(String description);
 
 	
 	/**

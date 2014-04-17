@@ -2,6 +2,7 @@ package com.itucity.dsmp.identity.service;
 
 import java.util.List;
 
+import com.itucity.dsmp.common.page.PagesInfo;
 import com.itucity.dsmp.identity.service.model.UserVO;
 
 
@@ -16,11 +17,11 @@ public interface UserService {
 	
 	/**
 	 * 分页获取所有用户
-	 * @param first 开始记录
-	 * @param last	结束记录
+	 * @param limit 	每页记录数
+	 * @param pageNo	第几页
 	 * @return
 	 */
-	List<UserVO> getUserByPage(Integer first, Integer last);
+	PagesInfo<UserVO> getUserByPage(Integer limit, Integer pageNo);
 	
 	/**
 	 * 根据用户名查询用户
@@ -42,12 +43,14 @@ public interface UserService {
 	/**
 	 * 按用户名模糊查询用户
 	 * @param nameLike
-	 * @param first 开始记录
-	 * @param max	结束记录
+	 * @param limit 	每页记录数
+	 * @param pageNo	第几页
+	 * 
+	 * 不传limit或pageNo时获取所有数据，当一页处理
 	 * 
 	 * @return
 	 */
-	List<UserVO> getUserByLike(String nameLike, Integer first, Integer max);
+	PagesInfo<UserVO> getUserByLike(String nameLike, Integer limit, Integer pageNo);
 	
 	/**
 	 * 添加用户

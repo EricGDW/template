@@ -1,6 +1,6 @@
 package com.itucity.dsmp.tripwiki.service;
 
-import com.itucity.dsmp.tripwiki.service.model.TagVO;
+import com.itucity.dsmp.tripwiki.dto.TagVO;
 
 
 public interface TagService {

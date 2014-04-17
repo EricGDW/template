@@ -15,11 +15,13 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.regex.Pattern;
+
+import javax.mail.internet.MimeUtility;
 
 import org.apache.log4j.Logger;
 
 import com.itucity.dsmp.common.Constants;
-import com.sun.xml.internal.messaging.saaj.packaging.mime.internet.MimeUtility;
 
 /**
  * 读取properties配置文件
@@ -312,4 +314,14 @@ public class Config {
 		} 
         return content;
     }
+    
+    /**
+     * 判断是否为数字
+     * @param str
+     * @return
+     */
+    public static boolean isNumeric(String str){ 
+        Pattern pattern = Pattern.compile("[0-9]*"); 
+        return pattern.matcher(str).matches();    
+     } 
 }

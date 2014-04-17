@@ -11,6 +11,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itucity.dsmp.common.page.PagesInfo;
 import com.itucity.dsmp.identity.dao.GroupDao;
 import com.itucity.dsmp.identity.dao.UserDao;
 import com.itucity.dsmp.identity.dao.entity.GroupPO;
@@ -29,7 +30,7 @@ import com.itucity.dsmp.identity.service.model.UserVO;
 @Transactional
 public class UserServiceImpl implements UserService{
 
-	private static Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+	private static Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 	
 	@Resource
 	private UserDao userDao;
@@ -45,7 +46,7 @@ public class UserServiceImpl implements UserService{
 			userVO = userPOToVO(user);
 			return userVO;
 		} 
-		logger.info(String.format("User [username : %s] not found", userName));
+		log.info(String.format("User [username : %s] not found", userName));
 		return null;
 	}
 
@@ -64,8 +65,14 @@ public class UserServiceImpl implements UserService{
 	}
 
 	@Override
-	public List<UserVO> getUserByPage(Integer first, Integer last) {
-		List<UserPO> pos =  userDao.findUserByPage(first, last);
+	public PagesInfo<UserVO> getUserByPage(Integer limit, Integer pageNo) {
+		PagesInfo<UserPO> page = new PagesInfo<UserPO>();
+		page.setCountPerPage(limit);
+		page.setPageNumber(pageNo);
+		
+		PagesInfo<UserPO> result =  userDao.findUserByPage(page);
+		
+		List<UserPO> pos = result.getResultsList();
 		
 		List<UserVO> vos = new ArrayList<UserVO>();
 		for(UserPO po : pos){
@@ -74,7 +81,14 @@ public class UserServiceImpl implements UserService{
 			vos.add(vo);
 		}
 		
-		return vos;
+		PagesInfo<UserVO> pages = new PagesInfo<UserVO>();
+		pages.setCountPerPage(limit);
+		pages.setPageNumber(pageNo);
+		pages.setResultsList(vos);
+		pages.setTotalPage(result.getTotalPage());
+		pages.setTotalRecord(result.getTotalRecord());
+		
+		return pages;
 	}
 
 	@Override
@@ -85,14 +99,27 @@ public class UserServiceImpl implements UserService{
 			vo = userPOToVO(po);
 			return vo;
 		}
-		logger.info(String.format("User [id : %d] not found", userID));
+		log.info(String.format("User [id : %d] not found", userID));
 		return null;
 	}
 
 	@Override
-	public List<UserVO> getUserByLike(String userLike, Integer start, 
-			Integer max) {
-		List<UserPO> pos =  userDao.findByLike(userLike, start, max);
+	public PagesInfo<UserVO> getUserByLike(String userLike, Integer limit, 
+			Integer pageNo) {
+		PagesInfo<UserPO> result = new PagesInfo<UserPO>();
+		
+		if(limit == null || pageNo == null){
+			result = userDao.findByNameLike(userLike, null);
+		}else{
+			PagesInfo<UserPO> page = new PagesInfo<UserPO>();
+			
+			page.setCountPerPage(limit);
+			page.setPageNumber(pageNo);
+			
+			result = userDao.findByNameLike(userLike, page);
+		}
+		
+		List<UserPO> pos = result.getResultsList();
 		
 		List<UserVO> vos = new ArrayList<UserVO>();
 		for(UserPO po : pos){
@@ -101,7 +128,14 @@ public class UserServiceImpl implements UserService{
 			vos.add(vo);
 		}
 		
-		return vos;
+		PagesInfo<UserVO> pages = new PagesInfo<UserVO>();
+		pages.setCountPerPage(limit);
+		pages.setPageNumber(pageNo);
+		pages.setResultsList(vos);
+		pages.setTotalPage(result.getTotalPage());
+		pages.setTotalRecord(result.getTotalRecord());
+		
+		return pages;
 	}
 	
 	@Override
@@ -109,6 +143,11 @@ public class UserServiceImpl implements UserService{
 		UserPO po = new UserPO();
 		po = userVOToPO(user);
 		userDao.save(po);
+		
+		UserDetailPO userDetail = new UserDetailPO();
+		BeanUtils.copyProperties(user, userDetail);
+		
+		userDao.save(userDetail);
 		return true;
 	}
 
@@ -116,7 +155,7 @@ public class UserServiceImpl implements UserService{
 	public Boolean deleteUser(Integer id) {
 		UserPO user = userDao.find(UserPO.class, id);
 		if(user == null){
-			logger.info(String.format("User [id : %d] not found", id ));
+			log.info(String.format("User [id : %d] not found", id ));
 			return false;
 		}
 		userDao.delete(user);
@@ -125,36 +164,37 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public Boolean editUser(UserVO user) {
-		// TODO Auto-generated method stub
 		UserPO tempUser = userDao.find(UserPO.class, user.getId());
 		if(tempUser == null){
-			logger.info(String.format("User [id : %d] not found", user.getId()));
+			log.info(String.format("User [id : %d] not found", user.getId()));
 			return false;
 		}
 		UserPO po = new UserPO();
 		po = userVOToPO(user);
 		userDao.update(po);
+		
+		UserDetailPO userDetail = new UserDetailPO();
+		BeanUtils.copyProperties(user, userDetail);
+		
+		userDao.update(userDetail);
+		
 		return true;
 	}
 
 	@Override
-	public Boolean addUserToGroup(Integer userid, Integer groupid) {
-		UserPO user = userDao.find(UserPO.class, userid);
+	public Boolean addUserToGroup(Integer uid, Integer groupid) {
+		UserPO user = userDao.find(UserPO.class, uid);
 		GroupPO group = groupDao.find(GroupPO.class, groupid);
 		if(user == null){
-			logger.info(String.format("User [id : %d] not found", userid));
+			log.info(String.format("User [id : %d] not found", uid));
 			return false;
 		}
 		if(group == null){
-			logger.info(String.format("Group [id : %d] not found", groupid));
+			log.info(String.format("Group [id : %d] not found", groupid));
 			return false;
 		}
-		List<GroupPO> groups = user.getGroups();
-		groups.add(group);
-		user.setGroups(groups);
 		
-		userDao.save(user);
-		return true;
+		return userDao.addUserToGroup(uid, groupid);
 	}
 	
 	public UserVO userPOToVO(UserPO po){
@@ -162,17 +202,18 @@ public class UserServiceImpl implements UserService{
 		
 		BeanUtils.copyProperties(po, vo);
 		
-		UserDetailPO userDetail = po.getUserDetail();
+		UserDetailPO userDetail = userDao.findUserDetail(po.getUid());
 		if(userDetail != null){
-			vo.setNo(userDetail.getIdCard());
+			vo.setIdcard(userDetail.getIdcard());
 			vo.setSex(userDetail.getSex());
-			vo.setRemarks(userDetail.getRemarks());
 			vo.setCity(userDetail.getCity());
 			vo.setCountry(userDetail.getCountry());
-			vo.setHeadImgUrl(userDetail.getHeadImgUrl());
+			vo.setHeadImgId(userDetail.getImageId());
 			vo.setLanguage(userDetail.getLanguage());
 			vo.setProvince(userDetail.getProvince());
-			vo.setNickname(userDetail.getNickname());
+			vo.setNickname(userDetail.getNickName());
+			vo.setRealname(userDetail.getRealName());
+			vo.setRegisterTime(userDetail.getRegisterTime());
 		}
 		
 		
@@ -184,47 +225,21 @@ public class UserServiceImpl implements UserService{
 		
 		BeanUtils.copyProperties(vo, po);
 		
-		UserDetailPO userDetail = po.getUserDetail();
-		String sex = vo.getSex();
-		if(sex != null){
-			userDetail.setSex(sex);
-		}
-		String no = vo.getNo();
-		if(no != null){
-			userDetail.setIdCard(no);
-		}
-		String remarks = vo.getRemarks();
-		if(sex != null){
-			userDetail.setRemarks(remarks);
-		}
-		String city = vo.getCity();
-		if(city != null){
-			userDetail.setCity(city);
-		}
-		String country = vo.getCountry();
-		if(country != null){
-			userDetail.setCountry(country);
-		}
-		String headImgUrl = vo.getHeadImgUrl();
-		if(headImgUrl != null){
-			userDetail.setHeadImgUrl(headImgUrl);
-		}
-		String language = vo.getLanguage();
-		if(language != null){
-			userDetail.setLanguage(language);
-		}
+//		UserDetailPO userDetail = new UserDetailPO();
+//		
+//		BeanUtils.copyProperties(vo, userDetail);
+//		
+//		userDetail.setSex(vo.getSex());
+//		userDetail.setIdcard(vo.getIdcard());
+//		userDetail.setCity(vo.getCity());
+//		userDetail.setCountry(vo.getCountry());
+//		userDetail.setImageId(vo.getHeadImgId());
+//		userDetail.setLanguage(vo.getLanguage());
+//		userDetail.setProvince(vo.getProvince());
+//		userDetail.setNickName(vo.getNickname());
+//		userDetail.setRealName(vo.getRealname());
+//		userDetail.setRegisterTime(vo.getRegisterTime());
 		
-		String province = vo.getProvince();
-		if(province != null){
-			userDetail.setProvince(province);
-		}
-		
-		String nickname = vo.getNickname();
-		if(nickname != null){
-			userDetail.setNickname(nickname);
-		}
-		
-		po.setUserDetail(userDetail);
 		return po;
 	}
 

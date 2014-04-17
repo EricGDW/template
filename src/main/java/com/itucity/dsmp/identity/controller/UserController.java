@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.itucity.dsmp.common.Constants;
+import com.itucity.dsmp.common.page.PagesInfo;
 import com.itucity.dsmp.identity.service.UserService;
 import com.itucity.dsmp.identity.service.model.UserVO;
 
@@ -86,8 +87,8 @@ public class UserController {
 	/**
 	 * 
 	 * @param name
-	 * @param limit
-	 * @param page
+	 * @param limit	(option) 	每页记录数
+	 * @param page(option)		第几页
 	 * @return
 	 */
 	@RequestMapping(value="/like/{name}",method=RequestMethod.GET)
@@ -95,11 +96,13 @@ public class UserController {
 	public Object findByLike(@PathVariable String name,
 			@RequestParam(value = "limit", required = false) Integer limit,
 			@RequestParam(value = "page", required = false) Integer page) {
-		List<UserVO> users = new ArrayList<UserVO>();
+		PagesInfo<UserVO> users = new PagesInfo<UserVO>();
 		
 		if(page != null && limit != null){
-			Integer start = (page- 1) * limit;
-			users = userService.getUserByLike(name, start, limit);
+			limit = limit > 0 && limit < 41 ? limit : 10;
+			page = page > 0 ? page : 1;
+			
+			users = userService.getUserByLike(name, limit, page);
 		}else{
 			users = userService.getUserByLike(name, null, null);
 		}
@@ -121,15 +124,13 @@ public class UserController {
 			@RequestParam(value = "limit", required = true, defaultValue = "10") Integer limit,
 			@RequestParam(value = "page", required = true, defaultValue="1") Integer page
 			) {
-		List<UserVO> users = new ArrayList<UserVO>();
+		PagesInfo<UserVO> users = new PagesInfo<UserVO>();
 		
 		limit = (limit > 0 && limit < 41) ? limit : 10;
 		
 		page = page > 0 ? page : 1;
 		
-		Integer start = (page- 1) * limit;
-		
-		users = userService.getUserByPage(start, limit);
+		users = userService.getUserByPage(limit, page);
 
 		return users;
 		

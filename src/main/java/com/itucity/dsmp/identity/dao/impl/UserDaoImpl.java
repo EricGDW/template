@@ -1,15 +1,21 @@
 package com.itucity.dsmp.identity.dao.impl;
 
+import java.util.Hashtable;
 import java.util.List;
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.MatchMode;
-import org.hibernate.criterion.Restrictions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.itucity.dsmp.common.base.impl.BaseDao;
+import com.itucity.dsmp.common.page.PagesInfo;
 import com.itucity.dsmp.identity.dao.UserDao;
+import com.itucity.dsmp.identity.dao.entity.GroupPO;
+import com.itucity.dsmp.identity.dao.entity.RolePO;
+import com.itucity.dsmp.identity.dao.entity.UserDetailPO;
+import com.itucity.dsmp.identity.dao.entity.UserRolePO;
+import com.itucity.dsmp.identity.dao.entity.UserRolePOId;
 import com.itucity.dsmp.identity.dao.entity.UserPO;
 
 
@@ -23,48 +29,176 @@ import com.itucity.dsmp.identity.dao.entity.UserPO;
 @Repository("userDao")
 public class UserDaoImpl extends BaseDao implements UserDao{
 
+	private static Logger log = LoggerFactory
+			.getLogger(UserDaoImpl.class);
+	
 	@Override
-	public UserPO findUserByUserName(String userName) {
-		return (UserPO) getSession().createCriteria(UserPO.class)
-				.add(Restrictions.eq("username", userName)).uniqueResult();
+	public UserDetailPO findUserDetail(Integer uid) {
+		return find(UserDetailPO.class, uid);
+	}
+	
+	@Override
+	public UserPO findUserByUserName(String username) {
+		StringBuffer hql = new StringBuffer();
+		Hashtable<String, Object> param = new Hashtable<String, Object>();
+		hql.append("FROM UserPO t WHERE 1 = 1 ");
+		hql.append("AND t.username =:username");
+		param.put("username", username);
+		List<UserPO> users = hqlQuery(hql.toString(), param);
+		if(users != null && users.size() != 0){
+			return users.get(0);
+		}
+		return null;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public List<UserPO> findAll() {
-		return (List<UserPO>) getSession().createCriteria(UserPO.class).list();
+		StringBuffer hql = new StringBuffer();
+		hql.append("FROM UserPO t WHERE 1 = 1 ");
+		List<UserPO> users = hqlQuery(hql.toString());
+		return users;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public List<UserPO> findAllAvailable() {
-		return (List<UserPO>) getSession().createCriteria(UserPO.class)
-				.add(Restrictions.eq("isValid", true)).list();
+		StringBuffer hql = new StringBuffer();
+		Hashtable<String, Object> param = new Hashtable<String, Object>();
+		hql.append("FROM UserPO t WHERE 1 = 1 ");
+		hql.append("AND t.isActive =:isActive");
+		param.put("isActive", true);
+		List<UserPO> users = hqlQuery(hql.toString(), param);
+		return users;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public List<UserPO> findByLike(String like, Integer firstResult, 
-			Integer maxResult) {
-		Criteria criteria = getSession().createCriteria(UserPO.class)
-				.add(Restrictions.like("username", like, MatchMode.ANYWHERE));
+	public PagesInfo<UserPO> findByNameLike(String name, PagesInfo<UserPO> pagesInfo) {
+		StringBuffer hql = new StringBuffer();
+		Hashtable<String, Object> param = new Hashtable<String, Object>();
 		
-		if(firstResult != null){
-			criteria.setFirstResult(firstResult > 0 ? firstResult : 0);
+		hql.append("FROM UserPO t WHERE 1 = 1 ");
+		hql.append("AND t.username LIKE:name ");
+		
+		param.put("name", name);
+		
+		if(pagesInfo == null){
+			List<UserPO> users = hqlQuery(hql.toString(), param);
+			
+			PagesInfo<UserPO> list = new PagesInfo<UserPO>();
+			
+			list.setCountPerPage(users.size());
+			list.setPageNumber(1);
+			list.setResultsList(users);
+			list.setTotalRecord(users.size());
+			list.setTotalPage(1);
+			
+			return list;
 		}
 		
-		if(maxResult != null){
-			criteria.setMaxResults(maxResult > 0 ? maxResult : 10);
-		}
-		
-		return (List<UserPO>) criteria.list();
+		PagesInfo<UserPO> list = hqlPageQuery(hql.toString(), param, pagesInfo);
+	
+		return list;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public List<UserPO> findUserByPage(Integer firstResult, Integer maxResult) {
-		return (List<UserPO>) getSession().createCriteria(UserPO.class)
-				.setFirstResult(firstResult).setMaxResults(maxResult).list();
+	public PagesInfo<UserPO> findUserByPage(PagesInfo<UserPO> pagesInfo) {
+		StringBuffer hql = new StringBuffer();
+		
+		hql.append("FROM UserPO t WHERE 1 = 1 ");
+		
+		PagesInfo<UserPO> list = hqlPageQuery(hql.toString(), pagesInfo);
+	
+		return list;
+		
+	}
+
+	@Override
+	public Boolean addUserToGroup(Integer uid, Integer groupId) {
+		UserRolePOId id = new UserRolePOId(uid, groupId);
+		
+		UserRolePO userGroup = new UserRolePO(id);
+		
+		save(userGroup);
+		
+		return true;
+	}
+
+	@Override
+	public List<GroupPO> findUserGroup(Integer uid) {
+		StringBuffer hql = new StringBuffer();
+		Hashtable<String, Object> param = new Hashtable<String, Object>();
+		
+		hql.append("SELECT t FROM GroupPO t, UserGroupPO r WHERE 1 = 1 ");
+		hql.append("AND r.id.groupId = t.groupId ");
+		hql.append("AND r.id.uid =:uid ");
+		
+		param.put("uid", uid);
+		
+		List<GroupPO> list = hqlQuery(hql.toString(), param);
+		
+		return list;
+	}
+
+	@Override
+	public UserPO findById(Integer uid) {
+		UserPO user = super.find(UserPO.class, uid);
+		if(user == null){
+			log.info(String.format("User [id : %d] not found", uid));
+			return null;
+		}
+		return user;
+	}
+
+	@Override
+	public Integer save(UserPO user) {
+		super.save(user);
+		return user.getUid();
+	}
+
+	@Override
+	public Boolean update(UserPO user) {
+		super.update(user);
+		return true;
+	}
+
+	@Override
+	public Boolean delete(UserPO user) {
+		super.delete(user);
+		return true;
+	}
+
+	@Override
+	public Boolean deleteById(Integer uid) {
+		StringBuffer hql = new StringBuffer();
+		Hashtable<String, Object> param = new Hashtable<String, Object>();
+		hql.append("DELETE FROM UserPO t WHERE 1 = 1 ");
+		hql.append("AND t.uid =:uid ");
+		param.put("uid", uid);
+		hqlUpdate(hql.toString(), param);
+		return true;
+	}
+
+	@Override
+	public Boolean addRoleToUser(Integer roleId, Integer uid) {
+		UserRolePOId id = new UserRolePOId(uid, roleId);
+		UserRolePO userRole = new UserRolePO(id);
+		save(userRole);
+		return true;
+	}
+
+	@Override
+	public List<RolePO> findUserRole(Integer uid) {
+		StringBuffer hql = new StringBuffer();
+		Hashtable<String, Object> param = new Hashtable<String, Object>();
+		
+		hql.append("SELECT t FROM RolePO t, UserRolePO r WHERE 1 = 1 ");
+		hql.append("AND r.id.roleId = t.roleId ");
+		hql.append("AND r.id.uid =:uid ");
+		
+		param.put("uid", uid);
+		
+		List<RolePO> list = hqlQuery(hql.toString(), param);
+		
+		return list;
 	}
 
 }

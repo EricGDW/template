@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 
 import com.itucity.dsmp.tripwiki.dao.TagDao;
 import com.itucity.dsmp.tripwiki.dao.entity.TagPO;
+import com.itucity.dsmp.tripwiki.dto.TagVO;
 import com.itucity.dsmp.tripwiki.service.TagService;
-import com.itucity.dsmp.tripwiki.service.model.TagVO;
 
 
 /**
@@ -47,7 +47,7 @@ public class TagServiceImpl implements TagService {
 	
 	@Override
 	public TagVO getById(Integer id) {
-		TagPO po = tagDao.find(TagPO.class, id);
+		TagPO po = tagDao.findById(id);
 		
 		if(po != null){
 			TagVO vo = new TagVO();
@@ -87,21 +87,17 @@ public class TagServiceImpl implements TagService {
 		TagPO po = new TagPO();
 		
 		po = tagVOToPO(tag);
-		po.setTagId(null);
-		
-		if(tag.getParentId() != null){
-			TagPO ppo = tagDao.find(TagPO.class, tag.getParentId());
-			//po.setParentTag(ppo);
+		try {
+			tagDao.save(po);
+		} catch (Exception e) {
+			System.out.println("重复的景点-标签"+po.getTagId());
 		}
-		
-		tagDao.save(po);
-		
 		return po.getTagId();
 	}
 
 	@Override
 	public Boolean updateTag(TagVO tag) {
-		TagPO po = tagDao.find(TagPO.class, tag.getTagId());
+		TagPO po = tagDao.findById(tag.getTagId());
 		if(po == null){
 			logger.info(String.format("Tag [id : %d] not found", 
 					tag.getTagId()));
@@ -116,7 +112,7 @@ public class TagServiceImpl implements TagService {
 
 	@Override
 	public Boolean deleteTag(Integer id) {
-		TagPO po = tagDao.find(TagPO.class, id);
+		TagPO po = tagDao.findById(id);
 		if(po == null){
 			logger.info(String.format("Tag [id : %d] not found", id ));
 			return false;

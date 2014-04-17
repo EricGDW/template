@@ -2,9 +2,11 @@ package com.itucity.dsmp.tripwiki.dao;
 
 import java.util.List;
 
-import com.itucity.dsmp.common.base.IDao;
-import com.itucity.dsmp.tripweek.dto.PlaceCondition;
+import com.itucity.dsmp.common.page.PagesInfo;
+import com.itucity.dsmp.tripwiki.dao.entity.ImagePO;
 import com.itucity.dsmp.tripwiki.dao.entity.PlacePO;
+import com.itucity.dsmp.tripwiki.dto.ImageCondition;
+import com.itucity.dsmp.tripwiki.dto.PlaceCondition;
 
 
 /**
@@ -15,21 +17,44 @@ import com.itucity.dsmp.tripwiki.dao.entity.PlacePO;
  * 
  * 3/22/2014
  */
-public interface PlaceDao extends IDao {
+public interface PlaceDao {
 	
 	/**
-	 * 按地点名称查询
-	 * @param name
+	 * 添加一个景点
+	 * @param po
 	 * @return
 	 */
-	PlacePO findByName(String name);
+	Boolean save(PlacePO placePO);
 	
 	/**
-	 * 按地点标签查询地点
-	 * @param tag
+	 * 按ID删除景点
+	 * @param placeId
 	 * @return
 	 */
-	List<PlacePO> findByTag(String tag);
+	Boolean delete(PlacePO placePO);
+	
+	/**
+	 * 按ID删除景点
+	 * @param placeId
+	 * @return
+	 */
+	Boolean deleteById(Integer placeId);
+	
+
+	/**
+	 * 按地点ID
+	 * @param placeId
+	 * @return
+	 */
+	PlacePO findById(Integer placeId);
+	
+	
+	/**
+	 * 更新景点
+	 * @param placePO
+	 * @return
+	 */
+	Boolean update(PlacePO placePO);
 	
 
 	/**
@@ -45,7 +70,7 @@ public interface PlaceDao extends IDao {
 	 * @param tagId
 	 * @return
 	 */
-	Integer addPlaceTag(Integer placeId, Integer tagId);
+	Boolean addPlaceTag(Integer placeId, Integer tagId);
 	
 	
 	/**
@@ -54,5 +79,15 @@ public interface PlaceDao extends IDao {
 	 * @param imageId
 	 * @return
 	 */
-	Integer addPlaceImage(Integer placeId, Integer imageId);
+	Boolean addPlaceImage(Integer placeId, Integer imageId);
+	
+
+	/**
+	 * 分页获取景点图片
+	 * @param placeId
+	 * @param page
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
+	PagesInfo<ImagePO> findPlaceImages(PagesInfo pagesInfo,ImageCondition condition);
 }

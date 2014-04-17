@@ -1,18 +1,25 @@
 package com.itucity.dsmp.tripwiki.dao.impl;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import com.itucity.dsmp.common.base.impl.BaseDao;
 import com.itucity.dsmp.common.page.PagesInfo;
-import com.itucity.dsmp.tripweek.dto.LineCondition;
 import com.itucity.dsmp.tripwiki.dao.LineDao;
+import com.itucity.dsmp.tripwiki.dao.entity.LineImagePO;
+import com.itucity.dsmp.tripwiki.dao.entity.LineImagePOId;
 import com.itucity.dsmp.tripwiki.dao.entity.LinePO;
+import com.itucity.dsmp.tripwiki.dao.entity.LinePlacePO;
+import com.itucity.dsmp.tripwiki.dao.entity.LinePlacePOId;
 import com.itucity.dsmp.tripwiki.dao.entity.LineTagPO;
+import com.itucity.dsmp.tripwiki.dao.entity.LineTagPOId;
+import com.itucity.dsmp.tripwiki.dao.entity.PlacePO;
+import com.itucity.dsmp.tripwiki.dao.entity.TagPO;
+import com.itucity.dsmp.tripwiki.dto.LineCondition;
 
 /**
  * 行程的线路Dao层实现
@@ -24,129 +31,114 @@ import com.itucity.dsmp.tripwiki.dao.entity.LineTagPO;
  */
 @Transactional
 @Repository("lineDao")
-public class LineDaoImpl extends BaseDao 
-				implements LineDao{
+public class LineDaoImpl extends BaseDao implements LineDao {
 
 	@Override
-	public LinePO findByName(String name) {
-		StringBuffer hql = new StringBuffer();
-		Hashtable<String, Object> param = new Hashtable<String, Object>();
-		
-		hql.append("FROM LinePO t WHERE 1 = 1 ");
-		hql.append("AND t.name =:name ");
-	
-		param.put("name", name);
-		
-		return (LinePO) hqlQuery(hql.toString(), param);
-		
-//		return (LinePO) getSession().createCriteria(LinePO.class)
-//				.add(Restrictions.eq("name", name)).uniqueResult();
+	public LinePO findById(Integer lineId) {
+		return super.find(LinePO.class, lineId);
 	}
 
 	@Override
-	public List<LinePO> findByType(String type) {
-		StringBuffer hql = new StringBuffer();
-		Hashtable<String, Object> param = new Hashtable<String, Object>();
-		
-		hql.append("FROM LinePO t WHERE 1 = 1 ");
-		hql.append("AND t.type :=type ");
-	
-		param.put("type", type);
-		
-		List<LinePO> list = hqlQuery(hql.toString(), param);
-		
-		return list;
-		
-//		return (List<LinePO>) getSession().createCriteria(LinePO.class)
-//				.add(Restrictions.eq("type", type))
-//				.addOrder( Order.desc("score") ).list();
+	public Integer save(LinePO line) {
+		super.save(line);
+		return line.getLineId();
 	}
 
 	@Override
-	public List<LinePO> findByTag(String tag) {
-		StringBuffer hql = new StringBuffer();
-		Hashtable<String, Object> param = new Hashtable<String, Object>();
-		
-		hql.append("FROM LinePO t WHERE 1 = 1 ");
-		hql.append("AND t.relatedTags.name :=tag ");
-		hql.append("ORDER BY t.score DESC ");
-		
-		param.put("tag", tag);
-		
-		List<LinePO> list = hqlQuery(hql.toString(), param);
-		
-		return list;
-		
-//		return (List<LinePO>) getSession().createCriteria(LinePO.class)
-//				.createCriteria("relatedTags")
-//		        .add(Restrictions.eq("name", tag))
-//				.list();
+	public Boolean update(LinePO line) {
+		super.update(line);
+		return true;
 	}
 
 	@Override
-	public List<LinePO> findTop(Integer topNum, Integer sort) {
-		String sortField = "";
-		switch(sort){
-		case 1:
-			sortField = "t.score";
-		case 2:
-			sortField = "t.shareCount";
-		case 3:
-			sortField = "t.favouriteCount";
-		}
-		
-		StringBuffer hql = new StringBuffer();
-		Hashtable<String, Object> param = new Hashtable<String, Object>();
-		
-		hql.append("FROM LinePO t WHERE 1 = 1 ");
-		hql.append("ORDER BY :sortField DESC ");
-		hql.append("ORDER BY t.hateCount ASC ");
-	
-		param.put("sortField", sortField);
-		
-		List<LinePO> list = hqlQuery(hql.toString(), param, 0, topNum);
-		
-		return list;
-		
-//		return (List<LinePO>) getSession().createCriteria(LinePO.class)
-//				.setMaxResults(topNum)
-//				.addOrder( Order.desc(sortField) )
-//				.addOrder( Order.asc("disagree") ).list();
+	public Boolean delete(LinePO line) {
+		super.delete(line);
+		return true;
+	}
+
+	@Override
+	public Boolean deleteById(Integer lineId) {
+		LinePO line = findById(lineId);
+		return delete(line);
 	}
 
 	@Override
 	public PagesInfo<LinePO> findByCondition(LineCondition condition,
-			PagesInfo pagesInfo) {
+			PagesInfo<LinePO> pagesInfo) {
 		StringBuffer hql = new StringBuffer();
 		Hashtable<String, Object> param = new Hashtable<String, Object>();
+		List<Integer> tagIds = new ArrayList<Integer>();
 		
-		hql.append("FROM LinePO t WHERE 1 = 1 ");
+		hql.append("SELECT DISTINCT t FROM LinePO t, LineTagPO r WHERE 1 = 1 ");
+		hql.append("AND t.lineId = r.id.lineId ");
+		hql.append("AND r.id.tagId IN (:tagIds) ");
 		
-		if(StringUtils.hasText(condition.getCity())){
-			hql.append("AND t.city =:city ");
-			param.put("city", condition.getCity());
+		if(condition.getWhen() != null){
+			tagIds.add(condition.getWhen());
 		}
-		if(StringUtils.hasText(condition.getType())){
-			hql.append("AND t.type =:type ");
-			param.put("type", condition.getType());
+		if(condition.getWho() != null){
+			tagIds.add(condition.getWho());
 		}
-		if(StringUtils.hasText(condition.getWho())){
-			hql.append("AND t.relatedTags.name IN(:tag) ");
-			param.put("tag", condition.getWho());
+		if(condition.getType() != null){
+			tagIds.add(condition.getType());
 		}
-		
-		return super.hqlPageQuery(hql.toString(), pagesInfo);
+		param.put("tagIds", tagIds);
+		return super.hqlPageQuery(hql.toString(), param, pagesInfo);
 	}
 
 	@Override
-	public Integer addLineTag(Integer lineId, Integer tagId) {
-		LineTagPO po = new LineTagPO(lineId, tagId);
+	public Boolean addLineTag(Integer lineId, Integer tagId) {
+		LineTagPOId id = new LineTagPOId(lineId, tagId);
 		
-		super.save(po);
+		LineTagPO lineTag = new LineTagPO(id);
+		super.save(lineTag);
 		
-		return po.getId();
+		return true;
 	}
 
+	@Override
+	public Boolean addLineImage(Integer lineId, Integer imageId) {
+		LineImagePOId id = new LineImagePOId(lineId, imageId);
+		LineImagePO lineImage = new LineImagePO(id);
+		save(lineImage);
+		return true;
+	}
 
+	@Override
+	public Boolean addLinePlace(Integer lineId, Integer placeId, Integer sort) {
+		LinePlacePOId id = new LinePlacePOId(placeId, lineId);
+		LinePlacePO linePlace = new LinePlacePO(id, sort);
+		save(linePlace);
+		return true;
+	}
+
+	@Override
+	public List<PlacePO> findLinePlace(Integer lineId) {
+		StringBuffer hql = new StringBuffer();
+		Hashtable<String, Object> param = new Hashtable<String, Object>();
+		
+		hql.append("SELECT t FROM PlacePO t, LinePlacePO r WHERE 1 = 1 ");
+		hql.append("AND r.id.placeId = t.placeId ");
+		hql.append("AND r.id.lineId =:lineId ");
+		hql.append("ORDER BY r.sort ASC");
+		param.put("lineId", lineId);
+		
+		List<PlacePO> list = hqlQuery(hql.toString(), param);
+		return list;
+	}
+
+	@Override
+	public List<TagPO> findLineTag(Integer lineId) {
+		StringBuffer hql = new StringBuffer();
+		Hashtable<String, Object> param = new Hashtable<String, Object>();
+		
+		hql.append("SELECT t FROM TagPO t, LineTagPO r WHERE 1 = 1 ");
+		hql.append("AND r.id.tagId = t.tagId ");
+		hql.append("AND r.id.lineId =:lineId ");
+		param.put("lineId", lineId);
+		
+		List<TagPO> list = hqlQuery(hql.toString(), param);
+		return list;
+	}
 
 }

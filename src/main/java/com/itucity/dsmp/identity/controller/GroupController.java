@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.itucity.dsmp.common.Constants;
+import com.itucity.dsmp.common.page.PagesInfo;
 import com.itucity.dsmp.identity.service.GroupService;
 import com.itucity.dsmp.identity.service.model.GroupVO;
 
@@ -57,48 +58,37 @@ public class GroupController {
 	
 	/**
 	 * 
-	 * @param groupname
-	 * @return
+	 * @param limit
+	 * @param page
+	 * @returns
 	 */
-	@RequestMapping(value="/name/{groupname}",method=RequestMethod.GET)
-	public Object getGroupByName(@PathVariable String groupname) {
-		GroupVO group = new GroupVO();
+	@RequestMapping(value="/page",method=RequestMethod.GET)
+	@ResponseBody
+	public Object getByLike(
+			@RequestParam(value = "limit", required = false) Integer limit,
+			@RequestParam(value = "page", required = false) Integer page) {
+		PagesInfo<GroupVO> groups = new PagesInfo<GroupVO>();
 		
-		group = groupService.getGroupByName(groupname);
-		
-		if(group == null){
-			Map<String , Object> result = new HashMap<String , Object>(3);
-			
-			result.put("status", Constants.STATUS_FAILED);
-			result.put("errcode", Constants.ERROR_NOT_FOUND);
-			result.put("errmsg", "cannot find group [name : " + groupname + "]");
-			
-			return result;
+		if(page != null && limit != null){
+			groups = groupService.getGroupByPage(limit, page);
+		}else{
+			groups = groupService.getGroupByPage(null, null);
 		}
 		
-		return group;
-
+		return groups;
+		
 	}
 	
 	/**
 	 * 
 	 * @param name
-	 * @param limit
-	 * @param page
-	 * @return
+	 * @returns
 	 */
 	@RequestMapping(value="/like/{name}",method=RequestMethod.GET)
-	public Object getByLike(@PathVariable String name,
-			@RequestParam(value = "limit", required = false) Integer limit,
-			@RequestParam(value = "page", required = false) Integer page) {
+	public Object getByNameLike(@PathVariable String name) {
 		List<GroupVO> groups = new ArrayList<GroupVO>();
 		
-		if(page != null && limit != null){
-			Integer start = (page- 1) * limit;
-			groups = groupService.getGroupByLike(name, start, limit);
-		}else{
-			groups = groupService.getGroupByLike(name, null, null);
-		}
+		groups = groupService.getGroupByLike(name);
 		
 		return groups;
 		
@@ -129,7 +119,7 @@ public class GroupController {
 	 */
 	@RequestMapping(value="/add",method=RequestMethod.POST)
 	@ResponseBody
-	public Object addUser(@RequestBody GroupVO group) {
+	public Object addGroup(@RequestBody GroupVO group) {
 		
 		Boolean flag = false;
 		flag = groupService.addGroup(group);
@@ -138,7 +128,7 @@ public class GroupController {
 			Map<String , Object> successInfo = new HashMap<String , Object>(2);
 			
 			successInfo.put(Constants.STATUS_KEY, Constants.STATUS_SUCCESS);
-			successInfo.put("id", group.getId());
+			successInfo.put("id", group.getGroupId());
 			
 			return successInfo;
 		}else{
@@ -174,7 +164,7 @@ public class GroupController {
 			
 			result.put(Constants.STATUS_KEY, Constants.STATUS_FAILED);
 			result.put("errcode", Constants.ERROR_NOT_FOUND);
-			result.put("errmsg", "cannot find group [id : " + group.getId() + "]");
+			result.put("errmsg", "cannot find group [id : " + group.getGroupId() + "]");
 			
 			return result;
 		}
